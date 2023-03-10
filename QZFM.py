@@ -35,6 +35,7 @@ class QZFM(object):
             led:                dict of led status on/off
             messages:           list of tuples (message, epoch time)
             nbytes_status:      serial read chunk size in bytes for status updates
+            read_axis:          str, axis for readback
             sensor_par:         dict of sensor parameter readback values
             ser:                serial.Serial object for connection
             status_last_updated:epoch time last updated status (led, sensor_par, messages)
@@ -142,6 +143,7 @@ class QZFM(object):
         
         # axis readback mode
         self.axis_mode = 'z'
+        self.read_axis = 'z'
 
         # set default gain
         self.gain = 2.7
@@ -158,6 +160,21 @@ class QZFM(object):
         else:       
             self.ser.write(b'8')
             self.is_data_streaming = False
+
+    def _set_read_axis(self, axis):
+        """
+            Change the axis for measurement
+
+            axis: str, either x, y, or z
+        """
+
+        if axis == 'x':     self.ser.write(b'G')
+        elif axis == 'y':   self.ser.write(b'@')
+        elif axis == 'z':   self.ser.write(b'?')
+        else:
+            raise RuntimeError(f'Unknown axis "{axis}"')
+
+        self.read_axis = axis
 
     def auto_start(self, block=True):   
         """
@@ -252,7 +269,7 @@ class QZFM(object):
         self.is_calibrated = False
         self.is_field_zeroed = False
 
-    def field_zero(self, on=True, axes_xyz=True, dBz=np.inf, dBy=np.inf, dB0=np.inf, show=True):
+    def field_zero(self, on=True, axes_xyz=True, dBz=np.inf, dBy=np.inf, dB0=np.inf, dT=np.inf, show=True):
         """
             Run field zeroing procedure
 
@@ -266,6 +283,8 @@ class QZFM(object):
                             if step is smaller than this, stop zeroing procedure.
                             All conditions must be satisfied for field zero stop
                             Set to inf to disable
+
+            dT:             similar to above fields, but for cell temperature
 
             show: if true write diagnostic to stdout
         """
@@ -302,13 +321,14 @@ class QZFM(object):
             Bz_now = self.sensor_par['Bz field (pT)']
             By_now = self.sensor_par['By field (pT)']
             B0_now = self.sensor_par['B0 field (pT)']
+            T_now = self.sensor_par['cell temp error']
             
-            if not (np.isinf(dBz) and np.isinf(dBy) and np.isinf(dB0)):
-                print('\n'*3)
+            if not (np.isinf(dBz) and np.isinf(dBy) and np.isinf(dB0) and np.isinf(dT)):
+                print('\n'*5)
 
             try:
                 while (abs(Bz_now - Bz_last) > dBz) or (abs(By_now - By_last) > dBy) or \
-                    (abs(B0_now - B0_last) > dB0):
+                    (abs(B0_now - B0_last) > dB0) or (abs(T_now) > dT):
                     
                     # track
                     Bz_last = Bz_now
@@ -320,18 +340,21 @@ class QZFM(object):
                     Bz_now = self.sensor_par['Bz field (pT)']
                     By_now = self.sensor_par['By field (pT)']
                     B0_now = self.sensor_par['B0 field (pT)']
+                    T_now = self.sensor_par['cell temp error']
 
                     # print
                     if show:
                         lines = [f'Bz = {Bz_now:.4f} pT, dBz = {abs(Bz_now-Bz_last):.4f} pT (thresh: {dBz})',
-                                f'By = {By_now:.4f} pT, dBy = {abs(By_now-By_last):.4f} pT (thresh: {dBy})',
-                                f'B0 = {B0_now:.4f} pT, dB0 = {abs(B0_now-B0_last):.4f} pT (thresh: {dB0})',
+                                 f'By = {By_now:.4f} pT, dBy = {abs(By_now-By_last):.4f} pT (thresh: {dBy})',
+                                 f'B0 = {B0_now:.4f} pT, dB0 = {abs(B0_now-B0_last):.4f} pT (thresh: {dB0})',
+                                 '',
+                                 f'T error = {T_now:.4f} (thresh: {dT})',
                                 ]
-                        print("\033[F"*3 + '\n'.join(lines))                
+                        print("\033[F"*5 + '\n'.join(lines))
             except KeyboardInterrupt:
                 print()
 
-            if not (np.isinf(dBz) and np.isinf(dBy) and np.isinf(dB0)):
+            if not (np.isinf(dBz) and np.isinf(dBy) and np.isinf(dB0) and np.isinf(dT)):
                 self.field_zero(on=False)
 
             self.update_status()
@@ -449,6 +472,7 @@ class QZFM(object):
                  f'is_xyz_zeroing:      {self.is_xyz_zeroing}',
                  f'is_calibrated:       {self.is_calibrated}',
                  f'axis_mode:           {self.axis_mode}',
+                 f'read_axis:           {self.read_axis}',
                  f'gain:                {self.gain} V/nT',
                  ]
         print('\n'.join(lines), flush=True)
@@ -494,6 +518,8 @@ class QZFM(object):
         """
             Change field-sensitive axis
 
+            Note: triaxial sensors do not respond to this command
+
             mode =  z       Operate the magnetometer in single Z axis mode
                     y       Operate the magnetometer in single Y axis mode
                     dual    Operate the magnetometer in dual Y and Z axis mode
@@ -512,12 +538,13 @@ class QZFM(object):
         self.is_field_zeroed = False
         self.update_status()
 
-    def read_data(self, npts, clear_buffer=True):
+    def read_data(self, npts, axis='z', clear_buffer=True):
         """
             Read data from the device 
 
-            npts: number of data points to read
-            clear_buffer: if true, clear buffer and wait for new
+            npts:           int, number of data points to read
+            axis:           str, which axis to read from (x, y, or z)
+            clear_buffer:   bool, if true, clear buffer and wait for new
 
             assumed readback rate based on comments from QuSpin
             time[0] is the time immediately after clearing the buffer. 
@@ -526,6 +553,9 @@ class QZFM(object):
 
             returns (time, field)
         """
+
+        # switch axis
+        self._set_read_axis(axis)
 
         # start data stream
         if not self.is_data_streaming:
@@ -653,7 +683,7 @@ class QZFM(object):
             # readback parameters
             elif code[0] == '~':
                 if code[3:].replace('.', '').isnumeric():
-                    if   code[1:3] == '04':   sp['cell temp error'] = int(code[3:])
+                    if   code[1:3] == '04':   sp['cell temp error'] = (float(code[3:])-8388608)/524288
                     elif code[1:3] == '05':   sp['cell temp voltage'] = int(code[3:])
                     elif code[1:3] == '07':   sp['Bz field (pT)'] = (float(code[3:])-32768)*0.01
                     elif code[1:3] == '08':   sp['By field (pT)'] = (float(code[3:])-32768)*0.01
