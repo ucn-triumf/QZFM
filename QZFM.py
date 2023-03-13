@@ -12,12 +12,15 @@
 # https://pyserial.readthedocs.io
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import serial
 
 from serial.tools import list_ports
 from time import time
 from datetime import datetime
+
+matplotlib.use('TkAgg')
 
 class QZFM(object):
     """
