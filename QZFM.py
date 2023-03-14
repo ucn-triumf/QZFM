@@ -371,6 +371,112 @@ class QZFM(object):
 
             self.update_status()
     
+    def monitor_cell_T_error(self, window_s=20, figsize=(10, 6)):
+        """
+            Continuously stream cell temperature to window
+            
+            window_s: show the last window_s seconds of data on the stream
+            figsize:  size of display
+
+            See https://matplotlib.org/stable/tutorials/advanced/blitting.html
+        """
+
+        # get initial point
+        self.update_status()
+
+        # make figure 
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # draw initial window
+        x = np.array([self.status_last_updated])
+        y = np.array([self.sensor_par['cell temp error']])
+        
+        (line,) = plt.plot(np.zeros(1), y, animated=True, marker='o', fillstyle='none')
+        
+        # plot elements
+        plt.ylabel(f'Cell Temperature Error')
+        plt.xlabel(f'Time (s)')
+        plt.tight_layout()
+
+        # render
+        plt.show(block=False)
+        plt.pause(0.05)
+
+        # get bounding box
+        bg = fig.canvas.copy_from_bbox(fig.bbox)
+
+        # draw
+        ax.draw_artist(line)
+
+        # show
+        fig.canvas.blit(fig.bbox)
+
+        # set x bounds
+        ax.set_xlim(-window_s*1.1, window_s*0.1)
+
+        # get bounds
+        ylim = ax.get_ylim()
+        xlim = ax.get_xlim()
+
+        try:
+            # draw forever
+            while True:
+                
+                # get data
+                self.update_status(clear_buffer=True)
+                T = self.sensor_par['cell temp error']
+                t = self.status_last_updated
+                
+                x = np.append(x, t)
+                y = np.append(y, T)
+                dx = x-t
+                
+                # check data limits
+                idx = np.abs(dx) < window_s
+                x = x[idx]
+                y = y[idx]
+                dx = dx[idx] 
+
+                # check for figure
+                if not plt.fignum_exists(fig.number):
+                    break
+
+                # if out of bounds, redraw
+                if not (max(y) < ylim[1] and min(y) > ylim[0]) or not (max(dx) < xlim[1] and min(dx) > xlim[0]):
+                    plt.cla()
+                    (line,) = plt.plot(dx, y, animated=True, marker='o', fillstyle='none')
+                    
+                    # plot elements
+                    plt.ylabel(f'Cell Temperature Error')
+                    plt.xlabel(f'Time (s)')
+                    plt.tight_layout()
+                    
+                    # redraw
+                    plt.pause(0.05)
+                    bg = fig.canvas.copy_from_bbox(fig.bbox)
+                    ax.draw_artist(line)
+                    fig.canvas.blit(fig.bbox)
+                
+                else:                
+                    # reset background
+                    fig.canvas.restore_region(bg)
+
+                    # set data
+                    line.set_xdata(dx)
+                    line.set_ydata(y)
+                    ax.draw_artist(line)
+
+                # update screen
+                fig.canvas.blit(fig.bbox)
+                fig.canvas.flush_events()
+
+                # print n events in buffer
+                print(f'N events remaining in buffer: {self.ser.in_waiting}', 
+                      flush=True, end='\r')
+
+        except KeyboardInterrupt:
+            print()
+    
     def monitor_data(self, axis='z', window_s=5, figsize=(10, 6)):
         """
             Continuously stream data to window
@@ -384,6 +490,7 @@ class QZFM(object):
 
         # get npts to show
         npts = self.data_read_rate * window_s
+        nticks = 5
 
         # set data to stream
         if not self.is_data_streaming:
@@ -414,7 +521,7 @@ class QZFM(object):
 
         # show
         fig.canvas.blit(fig.bbox)
-
+        
         # get bounds
         ylim = ax.get_ylim()
 
@@ -426,10 +533,22 @@ class QZFM(object):
                 _, data = self.read_data(int(self.data_read_rate*0.05), axis=axis, clear_buffer=False)
                 y = np.append(y, data)[-npts:]
 
-                # check bounds
+                # check bounds: redraw
                 if not (max(data) < ylim[1] and min(data) > ylim[0]):
-                    dy = (max(y) - min(y))*0.1
-                    ax.set_ylim(min(y)-dy, max(y)+dy)
+                    plt.cla()
+                    (line,) = plt.plot(x, y, animated=True)
+            
+                    # plot elements
+                    plt.ylabel(f'$B_{self.read_axis}$ (pT)')
+                    plt.xlabel(f'Time (s)')
+                    plt.tight_layout()
+
+                    # render
+                    bg = fig.canvas.copy_from_bbox(fig.bbox)
+                    plt.pause(0.001)
+                    bg = fig.canvas.copy_from_bbox(fig.bbox)
+                    ax.draw_artist(line)
+                    fig.canvas.blit(fig.bbox)
                     ylim = ax.get_ylim()
 
                 # check for figure
