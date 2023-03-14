@@ -12,6 +12,7 @@
 # https://pyserial.readthedocs.io
 
 import numpy as np
+import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import serial
@@ -178,19 +179,26 @@ class QZFM(object):
             raise RuntimeError(f'Unknown axis "{axis}"')
 
         self.read_axis = axis
+        self._get_next_message()
 
-    def auto_start(self, block=True):   
+    def auto_start(self, block=True, show=True):   
         """
          	Initiate the automated sensor startup routines
              
             if block, wait until laser is locked and 
             temperature stabilized before unblocking
+            
+            if show, monitor status
         """
         self.ser.write(b'>')
+        self.update_status()
+        self.print_status(overwrite_last=False)
 
         if block:
             while not self.led["laser lock (LED3)"] or not self.led["cell temp lock (LED2)"]:
                 self.update_status()
+                if show: 
+                    self.print_status(overwrite_last=True)
 
     def calibrate(self, show=True):
         """
@@ -362,11 +370,13 @@ class QZFM(object):
 
             self.update_status()
     
-    def monitor_data(self, window_s=5):
+    def monitor_data(self, axis='z', window_s=5, figsize=(10, 6)):
         """
             Continuously stream data to window
 
+            axis:     axis to read from
             window_s: show the last window_s seconds of data on the stream
+            figsize:  size of display
 
             See https://matplotlib.org/stable/tutorials/advanced/blitting.html
         """
@@ -379,11 +389,11 @@ class QZFM(object):
             self._set_data_stream()
 
         # make figure 
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=figsize)
 
         # draw initial window
         x = np.linspace(-window_s, 0, npts)
-        _, y = self.read_data(npts, clear_buffer=True)
+        _, y = self.read_data(npts, axis=axis, clear_buffer=True)
         (line,) = plt.plot(x, y, animated=True)
         
         # plot elements
@@ -409,7 +419,7 @@ class QZFM(object):
             while True:
                 
                 # get data
-                _, data = self.read_data(int(self.data_read_rate*0.05), clear_buffer=False)
+                _, data = self.read_data(int(self.data_read_rate*0.05), axis=axis, clear_buffer=False)
                 y = np.append(y, data)[-npts:]
 
                 # check for figure
@@ -496,13 +506,13 @@ class QZFM(object):
         lines = ['',
                  f'Last updated: {datetime.fromtimestamp(self.status_last_updated)}',
                  '',
-                 f'Laser on:        {self.led["laser on (LED1)"]}',
-                 f'Cell T lock:     {self.led["cell temp lock (LED2)"]}',
-                 f'Laser lock:      {self.led["laser lock (LED3)"]}',
                  f'Field zeroed:    {self.led["field zeroed (LED4)"]}',
+                 f'Laser lock:      {self.led["laser lock (LED3)"]}',
+                 f'Cell T lock:     {self.led["cell temp lock (LED2)"]}',
+                 f'Laser on:        {self.led["laser on (LED1)"]}',
                  '',
-                 f'Cell T error:    {self.sensor_par["cell temp error"]}',
-                 f'Cell T voltage:  {self.sensor_par["cell temp voltage"]}',
+                 f'Cell T error:    {self.sensor_par["cell temp error"]:.5g}',
+                 #f'Cell T voltage:  {self.sensor_par["cell temp voltage"]}',
                  f'Bz field:        {self.sensor_par["Bz field (pT)"]:.4f} pT',
                  f'By field:        {self.sensor_par["By field (pT)"]:.4f} pT',
                  f'B0 field:        {self.sensor_par["B0 field (pT)"]:.4f} pT',
@@ -639,6 +649,44 @@ class QZFM(object):
         elif mode == '3x':  
             self.ser.write(b'b')
             self.gain = 8.1     # V/nT
+
+    def to_csv(self, filename=None):
+        """
+            Write data to csv, if no filename, use default
+        """
+        
+        # set default file name
+        if filename is None:
+            t = datetime.now()
+            filename = f'qzfm_{datetime.strftime("%y%m%d%H%M%S")}.csv'
+        
+        # make dataframe
+        df = pd.DataFrame({'time (epoch)':self.time, f'{self.read_axis} field (pT)':self.field})
+        
+        self.update_status()
+        
+        # write file header
+        header = [ '# QZFM (QuSpin Zero Field Monitor) data',
+                   '# ',
+                  f'# Field zeroed:    {self.led["field zeroed (LED4)"]}',
+                  f'# Laser lock:      {self.led["laser lock (LED3)"]}',
+                  f'# Cell T lock:     {self.led["cell temp lock (LED2)"]}',
+                  f'# Laser on:        {self.led["laser on (LED1)"]}',
+                  '#',
+                  f'# Cell T error:    {self.sensor_par["cell temp error"]}',
+                  f'# Bz field:        {self.sensor_par["Bz field (pT)"]:.4f} pT',
+                  f'# By field:        {self.sensor_par["By field (pT)"]:.4f} pT',
+                  f'# B0 field:        {self.sensor_par["B0 field (pT)"]:.4f} pT',
+                   '#',
+                  f'# {datetime.now()}',
+                   '# \n',
+                 ]
+        with open(filename, 'w') as fid:
+            fid.write('\n'.join(header))
+        
+        # write data
+        df.to_csv(filename, mode='a', index=False)
+                 
 
     def update_status(self, clear_buffer=True):
         """
