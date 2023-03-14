@@ -414,6 +414,9 @@ class QZFM(object):
         # show
         fig.canvas.blit(fig.bbox)
 
+        # get bounds
+        ylim = ax.get_ylim()
+
         try:
             # draw forever
             while True:
@@ -421,6 +424,12 @@ class QZFM(object):
                 # get data
                 _, data = self.read_data(int(self.data_read_rate*0.05), axis=axis, clear_buffer=False)
                 y = np.append(y, data)[-npts:]
+
+                # check bounds
+                if not (max(data) < ylim[1] and min(data) > ylim[0]):
+                    dy = (max(y) - min(y))*0.1
+                    ax.set_ylim(min(y)-dy, max(y)+dy)
+                    ylim = ax.get_ylim()
 
                 # check for figure
                 if not plt.fignum_exists(fig.number):
