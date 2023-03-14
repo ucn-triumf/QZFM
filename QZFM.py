@@ -545,7 +545,7 @@ class QZFM(object):
 
                     # render
                     bg = fig.canvas.copy_from_bbox(fig.bbox)
-                    plt.pause(0.001)
+                    fig.canvas.draw()
                     bg = fig.canvas.copy_from_bbox(fig.bbox)
                     ax.draw_artist(line)
                     fig.canvas.blit(fig.bbox)
@@ -779,9 +779,11 @@ class QZFM(object):
             self.ser.write(b'b')
             self.gain = 8.1     # V/nT
 
-    def to_csv(self, filename=None):
+    def to_csv(self, filename=None, *notes):
         """
             Write data to csv, if no filename, use default
+            
+            notes: list of things to add to file header
         """
         
         # set default file name
@@ -807,9 +809,14 @@ class QZFM(object):
                   f'# By field:        {self.sensor_par["By field (pT)"]:.4f} pT',
                   f'# B0 field:        {self.sensor_par["B0 field (pT)"]:.4f} pT',
                    '#',
-                  f'# {datetime.now()}',
-                   '# \n',
-                 ]
+                  ]
+          
+        if notes:
+            notes = [f'#\t{note}' for note in notes]
+            header.extend(['# Notes', *notes, '#'])
+            
+        header.extend([f'# {datetime.now()}', '# \n'])
+        
         with open(filename, 'w') as fid:
             fid.write('\n'.join(header))
         
