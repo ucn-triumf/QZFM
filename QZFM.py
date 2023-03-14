@@ -397,7 +397,7 @@ class QZFM(object):
         (line,) = plt.plot(x, y, animated=True)
         
         # plot elements
-        plt.ylabel('Field (pT)')
+        plt.ylabel(f'$B_{self.read_axis}$ (pT)')
         plt.xlabel(f'Time (s)')
         plt.tight_layout()
 
