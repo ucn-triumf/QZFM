@@ -261,10 +261,11 @@ class QZFM(object):
         plt.plot(self.time-self.time[0], self.field)
         
         # plot elements
-        plt.ylabel('Field (pT)')
+        plt.ylabel(f'$B_{self.read_axis}$ (pT)')
         plt.xlabel(f'Time Elapsed Since {datetime.fromtimestamp(self.time[0])} (s)',
                     fontsize='small')
         plt.tight_layout()
+        plt.show(block=False)
 
     def field_reset(self):
         """
