@@ -16,6 +16,7 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import serial
+from tqdm import tqdm
 
 from serial.tools import list_ports
 from time import time
@@ -733,6 +734,8 @@ class QZFM(object):
             clear_buffer:   bool, if true, clear initial buffer and wait for new
 
             time[0] is the time immediately after clearing the buffer. 
+            
+            reads at approx 7.5 Hz
         """
         
         # change to status readback
@@ -890,6 +893,39 @@ class QZFM(object):
                   f'# Bz field:        {self.sensor_par["Bz field (pT)"]:.4f} pT',
                   f'# By field:        {self.sensor_par["By field (pT)"]:.4f} pT',
                   f'# B0 field:        {self.sensor_par["B0 field (pT)"]:.4f} pT',
+                   '#',
+                  ]
+          
+        if notes:
+            notes = [f'#\t{note}' for note in notes]
+            header.extend(['# Notes', *notes, '#'])
+            
+        header.extend([f'# {datetime.now()}', '# \n'])
+        
+        with open(filename, 'w') as fid:
+            fid.write('\n'.join(header))
+        
+        # write data
+        df.to_csv(filename, mode='a', index=False)
+           
+    def to_csv_fz(self, filename=None, *notes):
+        """
+            Write field zero data to csv, if no filename, use default
+            
+            notes: list of things to add to file header
+        """
+        
+        # set default file name
+        if filename is None:
+            t = datetime.now()
+            filename = f'qzfm_fz_{datetime.strftime("%y%m%d%H%M%S")}.csv'
+        
+        # make dataframe
+        df = self.data_fz
+        
+        # write file header
+        header = [ '# QZFM (QuSpin Zero Field Monitor) field zeroing data',
+                   '# ',
                    '#',
                   ]
           
