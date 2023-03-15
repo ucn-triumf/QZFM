@@ -656,30 +656,6 @@ class QZFM(object):
         else:
             print('\n'.join(lines), flush=True)
 
-    def set_axis_mode(self, mode='z'):
-        """
-            Change field-sensitive axis
-
-            Note: triaxial sensors do not respond to this command
-
-            mode =  z       Operate the magnetometer in single Z axis mode
-                    y       Operate the magnetometer in single Y axis mode
-                    dual    Operate the magnetometer in dual Y and Z axis mode
-        """
-
-        mode = mode.lower().strip()
-        if mode == 'z':     
-            self.ser.write(b'C')
-        elif mode == 'y':   self.ser.write(b'F')
-        elif mode == 'dual':self.ser.write(b'B')
-        else:
-            raise RuntimeError('Bad mode: must be one of "z", "y", or "dual".')
-        
-        self.axis_mode = mode
-        self.is_calibrated = False
-        self.is_field_zeroed = False
-        self.update_status()
-
     def read_data(self, npts, axis='z', clear_buffer=True):
         """
             Read data from the device 
@@ -749,6 +725,88 @@ class QZFM(object):
 
         return (self.time, self.field)
     
+    def read_offsets(self, npts, clear_buffer=True):
+        """
+            Read offset data from the device in field zeroing mode 
+
+            npts:           int, number of data points to read
+            clear_buffer:   bool, if true, clear initial buffer and wait for new
+
+            time[0] is the time immediately after clearing the buffer. 
+        """
+        
+        # change to status readback
+        if self.is_data_streaming:
+            self._set_data_stream(False)	
+        
+        # storage for messages and data
+        stream = ''
+        data = {'x':np.zeros(npts*2), 
+                'y':np.zeros(npts*2), 
+                'z':np.zeros(npts*2)}
+        nx = 0
+        ny = 0
+        nz = 0
+
+        # clear buffer
+        if clear_buffer:
+            self.ser.reset_input_buffer()
+
+        # take data
+        time_start = time()
+        
+        while nx < npts and ny < npts and nz < npts:
+            print(nx, ny, nz, time()-time_start)
+            # read message 
+            message = self.ser.read(self.nbytes_status)
+
+            # clean up message to data format
+            message = message.decode('utf-8')
+            message = message.replace('\x00', '')
+            message = message.replace('\r', '')
+            
+            # append the old stream
+            message = stream+message
+            
+            # split into lines
+            codes = message.split('\n')
+            
+            if nx+ny+nz == 0:
+                codes = codes[1:]
+            
+            # parse the message
+            for code in codes[:-1]: 
+                if code[0] == '~':
+                    if code[3:].replace('.', '').isnumeric():
+                        if code[1:3] == '07':   
+                            data['z'][nz] = float(code[3:])-32768
+                            nz += 1
+                        elif code[1:3] == '08':   
+                            data['y'][ny] = float(code[3:])-32768
+                            ny += 1
+                        elif code[1:3] == '09':   
+                            data['x'][nx] = float(code[3:])-32768
+                            nx += 1
+
+            # save last point
+            stream = codes[-1]   
+		
+        # check number of points 
+        data['x'] = data['x'][:npts]
+        data['y'] = data['y'][:npts]
+        data['z'] = data['z'][:npts]
+        
+        # interpolate times
+        times = np.arange(npts)/self.data_read_rate + time_start
+        
+        # save 
+        self.data_fz = pd.DataFrame(data, index=times)
+        self.data_fz.index.name = 't (s)'
+        self.data_fz.rename(columns={'x':'B0 (pT)', 'y':'By (pT)', 'z':'Bz (pT)'}, 
+                                    inplace=True)
+                                    
+        return self.data_fz
+    
     def reboot(self):
         """
             Reboot the microprocessor and reloads the firmware
@@ -756,6 +814,30 @@ class QZFM(object):
         self.ser.write(b'e')
         self.update_status()
         self._reset_attributes()
+
+    def set_axis_mode(self, mode='z'):
+        """
+            Change field-sensitive axis
+
+            Note: triaxial sensors do not respond to this command
+
+            mode =  z       Operate the magnetometer in single Z axis mode
+                    y       Operate the magnetometer in single Y axis mode
+                    dual    Operate the magnetometer in dual Y and Z axis mode
+        """
+
+        mode = mode.lower().strip()
+        if mode == 'z':     
+            self.ser.write(b'C')
+        elif mode == 'y':   self.ser.write(b'F')
+        elif mode == 'dual':self.ser.write(b'B')
+        else:
+            raise RuntimeError('Bad mode: must be one of "z", "y", or "dual".')
+        
+        self.axis_mode = mode
+        self.is_calibrated = False
+        self.is_field_zeroed = False
+        self.update_status()
 
     def set_gain(self, mode='1x'):
         """
@@ -823,7 +905,6 @@ class QZFM(object):
         # write data
         df.to_csv(filename, mode='a', index=False)
                  
-
     def update_status(self, clear_buffer=True):
         """
             Clear input buffer and read status
