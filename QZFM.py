@@ -872,9 +872,9 @@ class QZFM(object):
                 if code[3:].replace('.', '').isnumeric():
                     if   code[1:3] == '04':   sp['cell temp error'] = (float(code[3:])-8388608)/524288
                     elif code[1:3] == '05':   sp['cell temp voltage'] = int(code[3:])
-                    elif code[1:3] == '07':   sp['Bz field (pT)'] = (float(code[3:])-32768)*0.01
-                    elif code[1:3] == '08':   sp['By field (pT)'] = (float(code[3:])-32768)*0.01
-                    elif code[1:3] == '09':   sp['B0 field (pT)'] = (float(code[3:])-32768)*0.01
+                    elif code[1:3] == '07':   sp['Bz field (pT)'] = float(code[3:])-32768
+                    elif code[1:3] == '08':   sp['By field (pT)'] = float(code[3:])-32768
+                    elif code[1:3] == '09':   sp['B0 field (pT)'] = float(code[3:])-32768
 
             # messages
             elif code[0] == '#':
