@@ -750,6 +750,9 @@ class QZFM(object):
         nx = 0
         ny = 0
         nz = 0
+        
+        # initialize progress bar
+        progress = tqdm(leave=False, total=npts, desc='Measuring')
 
         # clear buffer
         if clear_buffer:
@@ -759,6 +762,8 @@ class QZFM(object):
         time_start = time()
         
         while nx < npts and ny < npts and nz < npts:
+            
+            nx_start = nx
             
             # read message 
             message = self.ser.read(self.nbytes_status)
@@ -793,6 +798,9 @@ class QZFM(object):
 
             # save last point
             stream = codes[-1]   
+            
+            # iterate progress bar
+            progress.update(nx-nx_start)
 		
         # check number of points 
         data['x'] = data['x'][:npts]
