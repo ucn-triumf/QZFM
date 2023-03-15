@@ -756,7 +756,7 @@ class QZFM(object):
         time_start = time()
         
         while nx < npts and ny < npts and nz < npts:
-            print(nx, ny, nz, time()-time_start)
+            
             # read message 
             message = self.ser.read(self.nbytes_status)
 
