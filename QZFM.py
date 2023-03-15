@@ -502,7 +502,7 @@ class QZFM(object):
 
         # draw initial window
         x = np.linspace(-window_s, 0, npts)
-        _, y = self.read_data(npts, axis=axis, clear_buffer=True)
+        _, y = self.read_data(window_s, axis=axis, clear_buffer=True)
         (line,) = plt.plot(x, y, animated=True)
         
         # plot elements
@@ -531,7 +531,7 @@ class QZFM(object):
             while True:
                 
                 # get data
-                _, data = self.read_data(int(self.data_read_rate*0.05), axis=axis, clear_buffer=False)
+                _, data = self.read_data(0.05, axis=axis, clear_buffer=False)
                 y = np.append(y, data)[-npts:]
 
                 # check bounds: redraw
@@ -570,8 +570,11 @@ class QZFM(object):
                 # print n events in buffer
                 print(f'N events remaining in buffer: {self.ser.in_waiting}', 
                       flush=True, end='\r')
-
+                      
         except KeyboardInterrupt:
+            # save data
+            self.time = x
+            self.field = y
             print()
 
     def monitor_status(self):
@@ -657,11 +660,11 @@ class QZFM(object):
         else:
             print('\n'.join(lines), flush=True)
 
-    def read_data(self, npts, axis='z', clear_buffer=True):
+    def read_data(self, seconds, axis='z', clear_buffer=True):
         """
             Read data from the device 
 
-            npts:           int, number of data points to read
+            seconds:        float, duration of measurement npts= seconds*200Hz
             axis:           str, which axis to read from (x, y, or z)
             clear_buffer:   bool, if true, clear buffer and wait for new
 
@@ -672,6 +675,9 @@ class QZFM(object):
 
             returns (time, field)
         """
+
+        # get npts
+        npts = int(seconds*self.data_read_rate)
 
         # switch axis
         self._set_read_axis(axis)
