@@ -725,7 +725,7 @@ class QZFM(object):
 
         # interpolate times
         dt = (time_stop-time_start)/len(data)
-        times = np.arange(npts)*dts + time_start
+        times = np.arange(npts)*dt + time_start
 
         # convert bad data to nan
         data[~good_data] = np.nan
