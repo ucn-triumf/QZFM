@@ -560,8 +560,9 @@ class QZFM(object):
                 # reset background
                 fig.canvas.restore_region(bg)
 
-                # set y data
+                # set x and y data
                 line.set_ydata(y)
+                line.set_xdata(t-t[-1])
                 ax.draw_artist(line)
 
                 # update screen
@@ -699,6 +700,7 @@ class QZFM(object):
         # take data
         time_start = time()
         message = self.ser.read(nbytes)
+        time_stop = time()
 
         # clean up message to data format
         message = message.decode('utf-8')
@@ -722,7 +724,8 @@ class QZFM(object):
         assert npts == len(data), f"Readback data length incorrect: npts != len(data) ({npts} != {len(data)})"
 
         # interpolate times
-        times = np.arange(npts)/self.data_read_rate + time_start
+        dt = (time_stop-time_start)/len(data)
+        times = np.arange(npts)*dts + time_start
 
         # convert bad data to nan
         data[~good_data] = np.nan
