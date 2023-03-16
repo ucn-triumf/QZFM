@@ -60,8 +60,11 @@ class QZFM(object):
 
     data_read_rate = 200 # Hz
 
-    def __init__(self, nbytes_status=1000): 
+    def __init__(self, device_name=None, nbytes_status=1000): 
         """
+            device_name:    str, name of device to look for (connection)
+                            for windows this is likely COM3 or COM5
+                            for linux, search Z3T0 or similar    
             nbytes_status: serial read chunk size in bytes for status updates
         """
 
@@ -88,6 +91,10 @@ class QZFM(object):
                             }
         self.messages = []
         self._reset_attributes()
+        
+        # connect
+        if device_name is not None: 
+            self.connect(device_name)
 
     def _get_next_message(self, timeout=1):
         """
@@ -482,7 +489,7 @@ class QZFM(object):
         except KeyboardInterrupt:
             print()
     
-    def monitor_data(self, axis='z', window_s=5, figsize=(10, 6)):
+    def monitor_data(self, axis='z', window_s=10, figsize=(10, 6)):
         """
             Continuously stream data to window
 
@@ -703,14 +710,11 @@ class QZFM(object):
         if clear_buffer:
             self.ser.reset_input_buffer()
         
-       
-        
         # take data
         time_start = time()
         message = self.ser.read(nbytes)
         time_stop = time()
-        
-
+       
         # clean up message to data format
         message = message.decode('utf-8')
         message = message.replace('\x00', '')
