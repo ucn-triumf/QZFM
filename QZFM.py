@@ -173,6 +173,10 @@ class QZFM(object):
             axis: str, either x, y, or z
         """
 
+        # early end
+        if self.read_axis == axis:
+            return
+
         if axis == 'x':     self.ser.write(b'G')
         elif axis == 'y':   self.ser.write(b'@')
         elif axis == 'z':   self.ser.write(b'?')
@@ -531,7 +535,7 @@ class QZFM(object):
             while True:
                 
                 # get data
-                tnew, data = self.read_data(0.05, axis=axis, clear_buffer=False)
+                tnew, data = self.read_data(0.1, axis=axis, clear_buffer=False)
                 y = np.append(y, data)[-npts:]
                 t = np.append(t, tnew)[-npts:]
 
@@ -562,7 +566,7 @@ class QZFM(object):
 
                 # set x and y data
                 line.set_ydata(y)
-                line.set_xdata(t-t[-1])
+                # ~ line.set_xdata(t-t[-1])
                 ax.draw_artist(line)
 
                 # update screen
@@ -677,17 +681,19 @@ class QZFM(object):
 
             returns (time, field)
         """
+        
 
         # get npts
         npts = int(seconds*self.data_read_rate)
 
         # switch axis
         self._set_read_axis(axis)
-
+        
         # start data stream
         if not self.is_data_streaming:
             self._set_data_stream()
 
+        
         # get number of bytes to read
         # +2 bytes for \r and \n
         # +2 points since first and last are often partial
@@ -696,11 +702,14 @@ class QZFM(object):
         # clear buffer
         if clear_buffer:
             self.ser.reset_input_buffer()
-
+        
+       
+        
         # take data
         time_start = time()
         message = self.ser.read(nbytes)
         time_stop = time()
+        
 
         # clean up message to data format
         message = message.decode('utf-8')
