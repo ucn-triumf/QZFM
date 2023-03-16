@@ -501,8 +501,8 @@ class QZFM(object):
         fig, ax = plt.subplots(figsize=figsize)
 
         # draw initial window
-        x = np.linspace(-window_s, 0, npts)
-        _, y = self.read_data(window_s, axis=axis, clear_buffer=True)
+        x = -np.arange(npts)/self.data_read_rate
+        t, y = self.read_data(window_s, axis=axis, clear_buffer=True)
         (line,) = plt.plot(x, y, animated=True)
         
         # plot elements
@@ -531,8 +531,9 @@ class QZFM(object):
             while True:
                 
                 # get data
-                _, data = self.read_data(0.05, axis=axis, clear_buffer=False)
+                tnew, data = self.read_data(0.05, axis=axis, clear_buffer=False)
                 y = np.append(y, data)[-npts:]
+                t = np.append(t, tnew)[-npts:]
 
                 # check bounds: redraw
                 if not (max(data) < ylim[1] and min(data) > ylim[0]):
@@ -573,7 +574,7 @@ class QZFM(object):
                       
         except KeyboardInterrupt:
             # save data
-            self.time = x
+            self.time = t
             self.field = y
             print()
 
