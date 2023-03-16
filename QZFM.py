@@ -501,7 +501,7 @@ class QZFM(object):
         fig, ax = plt.subplots(figsize=figsize)
 
         # draw initial window
-        x = -np.arange(npts)/self.data_read_rate
+        x = (-np.arange(npts)/self.data_read_rate)[::-1]
         t, y = self.read_data(window_s, axis=axis, clear_buffer=True)
         (line,) = plt.plot(x, y, animated=True)
         
