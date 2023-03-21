@@ -40,19 +40,33 @@ Classes
 ### Instance variables
 
 `axis_mode`:          str, readback mode for daq
+
 `field`:              np.array of magnetic fields (pT)
+
 `gain`:               float, V/nT from setting analog gain
+
 `is_calibrated`:      True if calibration is ok
+
 `is_data_streaming`:  True if data streaming mode   
+
 `is_field_zeroed`:    True if field zeroing is maintained
+
 `is_xyz_zeroing`:     True if field zeroing applied to all axes, else only y and z
+
 `led`:                dict of led status on/off
+
 `messages`:           list of tuples (message, epoch time)
+
 `nbytes_status`:      serial read chunk size in bytes for status updates
+
 `read_axis`:          str, axis for readback
+
 `sensor_par`:         dict of sensor parameter readback values
+
 `ser`:                serial.Serial object for connection
+
 `status_last_updated`:epoch time last updated status (led, sensor_par, messages)
+
 `time`:               np.array of epoch times corresponding to field measurements 
 
 `cell_Tlock`
