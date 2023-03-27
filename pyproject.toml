@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "QZFM"
+version = "0.0.1"
+authors = [
+  { name="Derek Fujimoto", email="dfujimoto@triumf.ca" },
+]
+description = "Python class for serial communication with QuSpin Zero Field Magnetometer"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+keywords = [
+    "QZFM", 
+    "QuSpin",
+    "Magnetometer",
+    "Zero Field"
+]
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "pyserial",
+    "datetime",
+    "tqdm",
+    "pandas"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ucn-triumf/QZFM"
+"Bug Tracker" = "https://github.com/ucn-triumf/QZFM/issues"

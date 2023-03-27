@@ -8,9 +8,6 @@
 # see also https://quspin.com/products-qzfm-gen2-arxiv/qzfm-quick-start-guide/
 # for general usage and setup
 
-# dependencies: pip install --user pyserial
-# https://pyserial.readthedocs.io
-
 import numpy as np
 import pandas as pd
 import matplotlib
