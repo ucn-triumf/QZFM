@@ -1,22 +1,13 @@
 <img src="https://img.shields.io/github/languages/top/ucn-triumf/QZFM"/> <img src="https://img.shields.io/github/languages/code-size/ucn-triumf/QZFM"/> <img src="https://img.shields.io/github/license/ucn-triumf/QZFM"/> <img src="https://img.shields.io/github/last-commit/ucn-triumf/QZFM"/> 
 
 
-# QuSpin DAQ
+# QuSpin Zero Field Magnetometer DAQ
 
-Read and control QuSpin magnetometer
+Read and control QuSpin magnetometer (unofficial)
 
 Uses [QZFM commands] to send/receive signals via the [pySerial](https://pyserial.readthedocs.io/) module. See also [this guide](https://quspin.com/products-qzfm-gen2-arxiv/qzfm-quick-start-guide/) for more info on setup for the QuSpin.
 
-## Contents
-
-`QZFM` : Class for low-level control of the QuSpin. Handles connections and a mapping of the [QZFM commands].
-
-## Usage
-
-Install dependencies: 
-   ```bash
-   pip install --user -r requirements.txt
-   ```
+This has been tested on the QuSpin Triaxial sensor. 
 
 Module QZFM
 ===========
