@@ -1,3 +1,6 @@
+<img src="https://img.shields.io/github/languages/top/ucn-triumf/QZFM"/> <img src="https://img.shields.io/github/languages/code-size/ucn-triumf/QZFM"/> <img src="https://img.shields.io/github/license/ucn-triumf/QZFM"/> <img src="https://img.shields.io/github/last-commit/ucn-triumf/QZFM"/> 
+
+
 # QuSpin DAQ
 
 Read and control QuSpin magnetometer
