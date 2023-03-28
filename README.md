@@ -18,11 +18,7 @@ pip install --user QZFM
 
 It is helpful to also have [tkinter](https://docs.python.org/3/library/tkinter.html) installed on your machine as well. 
 
-Module QZFM
-===========
-
-Getting Started
--------
+## Getting Started
 
 This quick guide follows the QuSpin quick start guide on their [wbpage](https://quspin.com/products-qzfm-gen2-arxiv/qzfm-quick-start-guide/)
 
@@ -78,8 +74,7 @@ q.monitor_data()
 
 See below for full API description. 
 
-Class API
--------
+## Module QZFM API
 
 `QZFM(device_name=None, nbytes_status=1000)`
 :   Low-level control of QuSpin magnetic sensor via QZFM serial commands via USB
