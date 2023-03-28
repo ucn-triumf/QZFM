@@ -20,7 +20,7 @@ It is helpful to also have [tkinter](https://docs.python.org/3/library/tkinter.h
 
 ## Getting Started
 
-This quick guide follows the QuSpin quick start guide on their [wbpage](https://quspin.com/products-qzfm-gen2-arxiv/qzfm-quick-start-guide/)
+This quick guide follows the QuSpin quick start guide on their [webpage](https://quspin.com/products-qzfm-gen2-arxiv/qzfm-quick-start-guide/)
 
 1. With the QuSpin off, connect all hardware: connect signal cable to electronics box, and the box to a computer via USB
 2. Turn QuSpin on 
