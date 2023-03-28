@@ -8,10 +8,77 @@ Uses [QZFM commands] to send/receive signals via the [pySerial](https://pyserial
 
 This has been tested on the QuSpin Triaxial sensor. 
 
+## Installation
+
+Install can be done via [pip](https://pypi.org/project/QZFM/):
+
+```
+pip install --user QZFM
+```
+
+It is helpful to also have [tkinter](https://docs.python.org/3/library/tkinter.html) installed on your machine as well. 
+
 Module QZFM
 ===========
 
-Classes
+Getting Started
+-------
+
+This quick guide follows the QuSpin quick start guide on their [wbpage](https://quspin.com/products-qzfm-gen2-arxiv/qzfm-quick-start-guide/)
+
+1. With the QuSpin off, connect all hardware: connect signal cable to electronics box, and the box to a computer via USB
+2. Turn QuSpin on 
+3. The start procedure is as follows, in the python interpreter:
+
+```python
+from QZFM import QZFM
+
+# Get port for connection
+# On linux connect via searching for Z3T0 or similar
+# On windows you're looking for COM3 or similar
+from serial.tools import list_ports
+for p in list_ports.comports():
+    print(p)
+    
+# or search for a port
+list_ports.grep('some string')
+
+# if you know the port name already, make object and connect:
+q = QZFM('Z3T0')
+
+# auto start: wait until laser is locked, temperature is stable
+# QZFM object will by default block further execution until these conditions are met
+q.auto_start()
+
+# zero the field: the QuSpin will automatically adjust its internal coils to zero the field about the measurement cell
+# this procedure will continue until you disable it. 
+q.field_zero()
+
+# Monitor progress with the analog output or, as below, digitally
+# Wait until fields and temperatures are stable to a few pT. There may be some persistant oscillations
+# Use ctrl-C to exit monitor
+q.monitor_status()
+
+# Exit the zeroing procedure
+q.field_zero(False)
+
+# Do a calibration
+# The resulting message tells you if it was successful. 
+# From their website: "Calibration values above 1.5 indicate sub-optimal sensor performance, 
+# either due to large background field (> 50 nT), or a possible sensor issue."
+q.calibrate()
+
+# We are now ready to take data
+q.read_data()
+q.draw_data()
+
+# We can also livestream the data to a window
+q.monitor_data()
+```
+
+See below for full API description. 
+
+Class API
 -------
 
 `QZFM(device_name=None, nbytes_status=1000)`
