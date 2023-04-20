@@ -8,7 +8,7 @@ Uses [QZFM commands] to send/receive signals via the [pySerial](https://pyserial
 
 This has been tested on the QuSpin Triaxial sensor.
 
-[See API documentation here.](./docs/src/QZFM.md).
+## [See API documentation here.](./docs/src/QZFM.md)
 
 Documentation generated with [`handsdown`](https://github.com/vemel/handsdown)
 
