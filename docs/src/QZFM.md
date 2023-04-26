@@ -83,7 +83,7 @@ Initiate the automated sensor startup routines
 #### Signature
 
 ```python
-def auto_start(self, block: bool = True, show: bool = True):
+def auto_start(self, block=True, show=True):
     ...
 ```
 
@@ -100,7 +100,7 @@ Calibrate the response (field to voltage) of the magnetometer with an internal s
 #### Signature
 
 ```python
-def calibrate(self, show: bool = True):
+def calibrate(self, show=True):
     ...
 ```
 
@@ -129,7 +129,7 @@ Connect to the QuSpin device
 #### Signature
 
 ```python
-def connect(self, device_name: str):
+def connect(self, device_name):
     ...
 ```
 
@@ -189,7 +189,7 @@ Run field zeroing procedure
 #### Signature
 
 ```python
-def field_zero(self, on: bool = True, axes_xyz: bool = True, show: bool = True):
+def field_zero(self, on=True, axes_xyz=True, show=True):
     ...
 ```
 
@@ -257,7 +257,7 @@ See https://matplotlib.org/stable/tutorials/advanced/blitting.html
 #### Signature
 
 ```python
-def monitor_cell_T_error(self, window_s: int = 20, figsize=(10, 6)):
+def monitor_cell_T_error(self, window_s=20, figsize=(10, 6)):
     ...
 ```
 
@@ -278,7 +278,7 @@ See https://matplotlib.org/stable/tutorials/advanced/blitting.html
 #### Signature
 
 ```python
-def monitor_data(self, axis: str = "z", window_s: int = 10, figsize=(10, 6)):
+def monitor_data(self, axis="z", window_s=10, figsize=(10, 6)):
     ...
 ```
 
@@ -339,7 +339,7 @@ Print status of QuSpin in a nicely formatted message
 #### Signature
 
 ```python
-def print_status(self, update: bool = False, overwrite_last: bool = False):
+def print_status(self, update=False, overwrite_last=False):
     ...
 ```
 
@@ -367,7 +367,7 @@ Assumed readback rate based on comments from QuSpin:
 #### Signature
 
 ```python
-def read_data(self, seconds: float, axis: str = "z", clear_buffer: bool = True):
+def read_data(self, seconds, axis="z", clear_buffer=True):
     ...
 ```
 
@@ -392,7 +392,7 @@ reads at approx 7.5 Hz
 #### Signature
 
 ```python
-def read_offsets(self, npts: int, clear_buffer: bool = True):
+def read_offsets(self, npts, clear_buffer=True):
     ...
 ```
 
@@ -424,7 +424,7 @@ Note: triaxial sensors do not respond to this command
 #### Signature
 
 ```python
-def set_axis_mode(self, mode: str = "z"):
+def set_axis_mode(self, mode="z"):
     ...
 ```
 
@@ -444,7 +444,7 @@ Set analog gain (analog output only)
 #### Signature
 
 ```python
-def set_gain(self, mode: str = "1x"):
+def set_gain(self, mode="1x"):
     ...
 ```
 
@@ -503,6 +503,6 @@ updates the following attributes:
 #### Signature
 
 ```python
-def update_status(self, clear_buffer: bool = True):
+def update_status(self, clear_buffer=True):
     ...
 ```

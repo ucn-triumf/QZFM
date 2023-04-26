@@ -165,7 +165,7 @@ class QZFM(object):
         # set default gain
         self.gain = 2.7
 
-    def _set_data_stream(self, on:bool=True):
+    def _set_data_stream(self, on=True):
         """Turns on/off the sensor digital data stream and stops updating sensor status information
 
             Equivalent to the Print ON and Print OFF commands
@@ -181,7 +181,7 @@ class QZFM(object):
             self.ser.write(b'8')
             self.is_data_streaming = False
 
-    def _set_read_axis(self, axis:str):
+    def _set_read_axis(self, axis):
         """Change the axis for measurement
 
         Args:
@@ -204,7 +204,7 @@ class QZFM(object):
         self.read_axis = axis
         self._get_next_message()
 
-    def auto_start(self, block:bool=True, show:bool=True):
+    def auto_start(self, block=True, show=True):
         """Initiate the automated sensor startup routines
 
         Args:
@@ -221,7 +221,7 @@ class QZFM(object):
                 if show:
                     self.print_status(overwrite_last=True)
 
-    def calibrate(self, show:bool=True):
+    def calibrate(self, show=True):
         """Calibrate the response (field to voltage) of the magnetometer with an internal signal reference
 
         Args:
@@ -246,7 +246,7 @@ class QZFM(object):
         if show:
             self.print_messages(1)
 
-    def connect(self, device_name:str):
+    def connect(self, device_name):
         """Connect to the QuSpin device
 
         Args:
@@ -295,7 +295,7 @@ class QZFM(object):
         self.is_calibrated = False
         self.is_field_zeroed = False
 
-    def field_zero(self, on:bool=True, axes_xyz:bool=True, show:bool=True):
+    def field_zero(self, on=True, axes_xyz=True, show=True):
         """Run field zeroing procedure
 
         Args:
@@ -369,7 +369,7 @@ class QZFM(object):
 
             self.update_status()
 
-    def monitor_cell_T_error(self, window_s:int=20, figsize=(10, 6)):
+    def monitor_cell_T_error(self, window_s=20, figsize=(10, 6)):
         """Continuously stream cell temperature to figure
 
             See https://matplotlib.org/stable/tutorials/advanced/blitting.html
@@ -475,7 +475,7 @@ class QZFM(object):
         except KeyboardInterrupt:
             print()
 
-    def monitor_data(self, axis:str='z', window_s:int=10, figsize=(10, 6)):
+    def monitor_data(self, axis='z', window_s=10, figsize=(10, 6)):
         """Continuously stream data to window
 
             See https://matplotlib.org/stable/tutorials/advanced/blitting.html
@@ -617,7 +617,7 @@ class QZFM(object):
                  ]
         print('\n'.join(lines), flush=True)
 
-    def print_status(self, update:bool=False, overwrite_last:bool=False):
+    def print_status(self, update=False, overwrite_last=False):
         """Print status of QuSpin in a nicely formatted message
 
         Args:
@@ -654,7 +654,7 @@ class QZFM(object):
         else:
             print('\n'.join(lines), flush=True)
 
-    def read_data(self, seconds:float, axis:str='z', clear_buffer:bool=True):
+    def read_data(self, seconds, axis='z', clear_buffer=True):
         """Read data from the device
 
         Assumed readback rate based on comments from QuSpin:
@@ -730,7 +730,7 @@ class QZFM(object):
 
         return (self.time, self.field)
 
-    def read_offsets(self, npts:int, clear_buffer:bool=True):
+    def read_offsets(self, npts, clear_buffer=True):
         """Read offset data from the device in field zeroing mode
 
         time[0] is the time immediately after clearing the buffer.
@@ -830,7 +830,7 @@ class QZFM(object):
         self.update_status()
         self._reset_attributes()
 
-    def set_axis_mode(self, mode:str='z'):
+    def set_axis_mode(self, mode='z'):
         """Change field-sensitive axis
 
             Note: triaxial sensors do not respond to this command
@@ -852,7 +852,7 @@ class QZFM(object):
         self.is_field_zeroed = False
         self.update_status()
 
-    def set_gain(self, mode:str='1x'):
+    def set_gain(self, mode='1x'):
         """Set analog gain (analog output only)
 
         Args:
@@ -954,7 +954,7 @@ class QZFM(object):
         # write data
         df.to_csv(filename, mode='a', index=False)
 
-    def update_status(self, clear_buffer:bool=True):
+    def update_status(self, clear_buffer=True):
         """Clear input buffer and read status
 
             updates the following attributes:
