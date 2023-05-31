@@ -9,6 +9,22 @@ Uses [QZFM commands] to send/receive signals via the [pySerial](https://pyserial
 This has been tested on the QuSpin Triaxial sensor.
 
 ---
+## Installation
+
+Install is accomplished with [`pip`](https://pypi.org/project/QZFM/):
+
+```
+pip install --user QZFM
+```
+
+If you wish to install from source, clone this repository then do
+
+```
+cd path/QZFM
+pip install --user -e .
+```
+
+---
 ## [See API documentation here.](./docs/src/QZFM.md)
 
 Documentation generated with [`handsdown`](https://github.com/vemel/handsdown)
