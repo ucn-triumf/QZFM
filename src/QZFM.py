@@ -357,11 +357,11 @@ class QZFM(object):
 
                     # print
                     if show:
-                        lines = [f'Bz = {Bz_now:.4f} pT, dBz = {abs(Bz_now-Bz_last):.4f} pT (thresh: {dBz})',
-                                 f'By = {By_now:.4f} pT, dBy = {abs(By_now-By_last):.4f} pT (thresh: {dBy})',
-                                 f'B0 = {B0_now:.4f} pT, dB0 = {abs(B0_now-B0_last):.4f} pT (thresh: {dB0})',
+                        lines = [f'Bz = {Bz_now:.4f} pT, dBz = {abs(Bz_now-Bz_last):.4f} pT',
+                                 f'By = {By_now:.4f} pT, dBy = {abs(By_now-By_last):.4f} pT',
+                                 f'B0 = {B0_now:.4f} pT, dB0 = {abs(B0_now-B0_last):.4f} pT',
                                  '',
-                                 f'T error = {T_now:.4f} (thresh: {dT})',
+                                 f'T error = {T_now:.4f}',
                                 ]
                         print("\033[F"*5 + '\n'.join(lines))
             except KeyboardInterrupt:
