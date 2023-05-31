@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "QZFM"
-version = "0.0.2"
+version = "0.0.4"
 authors = [
   { name="Derek Fujimoto", email="dfujimoto@triumf.ca" },
 ]
@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 keywords = [
-    "QZFM", 
+    "QZFM",
     "QuSpin",
     "Magnetometer",
     "Zero Field"
