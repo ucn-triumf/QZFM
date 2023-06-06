@@ -344,7 +344,7 @@ class QZFM(object):
                 print('\n'*5)
 
             try:
-                while True:
+                while show:
 
                     # track
                     Bz_last = Bz_now
@@ -359,14 +359,13 @@ class QZFM(object):
                     T_now = self.sensor_par['cell temp error']
 
                     # print
-                    if show:
-                        lines = [f'Bz = {Bz_now:.4f} pT, dBz = {abs(Bz_now-Bz_last):.4f} pT' + ' '*10,
-                                 f'By = {By_now:.4f} pT, dBy = {abs(By_now-By_last):.4f} pT' + ' '*10,
-                                 f'B0 = {B0_now:.4f} pT, dB0 = {abs(B0_now-B0_last):.4f} pT' + ' '*10,
-                                 '',
-                                 f'T error = {T_now:.4f}' + ' '*10,
-                                ]
-                        print("\033[F"*5 + '\n'.join(lines))
+                    lines = [f'Bz = {Bz_now:.4f} pT, dBz = {abs(Bz_now-Bz_last):.4f} pT' + ' '*10,
+                             f'By = {By_now:.4f} pT, dBy = {abs(By_now-By_last):.4f} pT' + ' '*10,
+                             f'B0 = {B0_now:.4f} pT, dB0 = {abs(B0_now-B0_last):.4f} pT' + ' '*10,
+                             '',
+                             f'T error = {T_now:.4f}' + ' '*10,
+                             ]
+                    print("\033[F"*5 + '\n'.join(lines))
             except KeyboardInterrupt:
                 print()
 
