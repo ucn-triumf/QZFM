@@ -28,7 +28,8 @@ dependencies = [
     "pyserial",
     "datetime",
     "tqdm",
-    "pandas"
+    "pandas",
+    "plotext"
 ]
 
 [project.urls]

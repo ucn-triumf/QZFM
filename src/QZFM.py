@@ -20,8 +20,13 @@ from tqdm import tqdm
 from serial.tools import list_ports
 from time import time
 from datetime import datetime
+import plotext as pltt
 
-matplotlib.use('TkAgg')
+try:
+    matplotlib.use('TkAgg')
+except (ModuleNotFoundError, ImportError):
+    print('Failed to use backend "TkAgg"')
+
 
 class QZFM(object):
     """Low-level control of QuSpin magnetic sensor via QZFM serial commands via USB
@@ -269,19 +274,36 @@ class QZFM(object):
         self.reboot()
         self.ser.close()
 
-    def draw_data(self):
-        """Draw data to window"""
+    def draw_data(self, ascii=False):
+        """Draw data to window
 
-        # plot
-        plt.figure(figsize=(10,6))
-        plt.plot(self.time-self.time[0], self.field)
+        Args:
+            ascii (bool): if True, draw to stdout
+        """
 
-        # plot elements
-        plt.ylabel(f'$B_{self.read_axis}$ (pT)')
-        plt.xlabel(f'Time Elapsed Since {datetime.fromtimestamp(self.time[0])} (s)',
-                    fontsize='small')
-        plt.tight_layout()
-        plt.show(block=False)
+        # use matplotlib for normal output
+        if not ascii:
+            # plot
+            plt.figure(figsize=(10,6))
+            plt.plot(self.time-self.time[0], self.field)
+
+            # plot elements
+            plt.ylabel(f'$B_{self.read_axis}$ (pT)')
+            plt.xlabel(f'Time Elapsed Since {datetime.fromtimestamp(self.time[0])} (s)',
+                        fontsize='small')
+            plt.tight_layout()
+            plt.show(block=False)
+
+        # use plotext for ascii output
+        else:
+            pltt.plotsize(80, 30)
+            pltt.grid(True, True)
+            pltt.clc()
+            pltt.plot(self.time-self.time[0], self.field)
+            pltt.ylabel(f'$B_{self.read_axis}$ (pT)')
+            pltt.xlabel(f'Time Elapsed Since {datetime.fromtimestamp(self.time[0])} (s)',
+                        fontsize='small')
+            pltt.show()
 
     def field_reset(self):
         """Sets the internal coil field values to zero"""
@@ -477,7 +499,7 @@ class QZFM(object):
         except KeyboardInterrupt:
             print()
 
-    def monitor_data(self, axis='z', window_s=10, figsize=(10, 6)):
+    def monitor_data(self, axis='z', window_s=10, figsize=(10, 6), ascii=False):
         """Continuously stream data to window
 
             See https://matplotlib.org/stable/tutorials/advanced/blitting.html
@@ -486,6 +508,7 @@ class QZFM(object):
             axis (str): x|y|z
             window_s (int): show the last window_s seconds of data on the stream
             figsize (tuple):  size of display
+            ascii (bool): if true, display figure in terminal window
         """
 
         # get npts to show
@@ -496,33 +519,49 @@ class QZFM(object):
             self._set_data_stream()
 
         # make figure
-        fig, ax = plt.subplots(figsize=figsize)
+        if not ascii:
+            fig, ax = plt.subplots(figsize=figsize)
+        else:
+            pltt.clf()
+            pltt.plotsize(80, 30)
+            pltt.grid(True, True)
+            pltt.clc()
+            pltt.ylabel(f'$B_{self.read_axis}$ (pT)')
+            pltt.xlabel(f'Time (s)')
+
 
         # draw initial window
         x = (-np.arange(npts)/self.data_read_rate)[::-1]
         t, y = self.read_data(window_s, axis=axis, clear_buffer=True)
-        (line,) = plt.plot(x, y, animated=True)
 
-        # plot elements
-        plt.ylabel(f'$B_{self.read_axis}$ (pT)')
-        plt.xlabel(f'Time (s)')
-        plt.tight_layout()
+        if not ascii:
+            (line,) = plt.plot(x, y, animated=True)
 
-        # render
-        plt.show(block=False)
-        plt.pause(0.05)
+            # plot elements
+            plt.ylabel(f'$B_{self.read_axis}$ (pT)')
+            plt.xlabel(f'Time (s)')
+            plt.tight_layout()
 
-        # get bounding box
-        bg = fig.canvas.copy_from_bbox(fig.bbox)
+            # render
+            plt.show(block=False)
+            plt.pause(0.05)
 
-        # draw
-        ax.draw_artist(line)
+            # get bounding box
+            bg = fig.canvas.copy_from_bbox(fig.bbox)
 
-        # show
-        fig.canvas.blit(fig.bbox)
+            # draw
+            ax.draw_artist(line)
 
-        # get bounds
-        ylim = ax.get_ylim()
+            # show
+            fig.canvas.blit(fig.bbox)
+
+            # get bounds
+            ylim = ax.get_ylim()
+
+        else:
+            pltt.plot(x, y)
+            pltt.show()
+            pltt.clear_data()
 
         try:
             # draw forever
@@ -533,39 +572,48 @@ class QZFM(object):
                 y = np.append(y, data)[-npts:]
                 t = np.append(t, tnew)[-npts:]
 
-                # check bounds: redraw
-                if not (max(data) < ylim[1] and min(data) > ylim[0]):
-                    plt.cla()
-                    (line,) = plt.plot(x, y, animated=True)
+                # matplotlib drawing
+                if not ascii:
 
-                    # plot elements
-                    plt.ylabel(f'$B_{self.read_axis}$ (pT)')
-                    plt.xlabel(f'Time (s)')
-                    plt.tight_layout()
+                    # check bounds: redraw
+                    if not (max(data) < ylim[1] and min(data) > ylim[0]):
+                        plt.cla()
+                        (line,) = plt.plot(x, y, animated=True)
 
-                    # render
-                    bg = fig.canvas.copy_from_bbox(fig.bbox)
-                    fig.canvas.draw()
-                    bg = fig.canvas.copy_from_bbox(fig.bbox)
+                        # plot elements
+                        plt.ylabel(f'$B_{self.read_axis}$ (pT)')
+                        plt.xlabel(f'Time (s)')
+                        plt.tight_layout()
+
+                        # render
+                        bg = fig.canvas.copy_from_bbox(fig.bbox)
+                        fig.canvas.draw()
+                        bg = fig.canvas.copy_from_bbox(fig.bbox)
+                        ax.draw_artist(line)
+                        fig.canvas.blit(fig.bbox)
+                        ylim = ax.get_ylim()
+
+                    # check for figure
+                    if not plt.fignum_exists(fig.number):
+                        break
+
+                    # reset background
+                    fig.canvas.restore_region(bg)
+
+                    # set x and y data
+                    line.set_ydata(y)
+                    # ~ line.set_xdata(t-t[-1])
                     ax.draw_artist(line)
+
+                    # update screen
                     fig.canvas.blit(fig.bbox)
-                    ylim = ax.get_ylim()
+                    fig.canvas.flush_events()
 
-                # check for figure
-                if not plt.fignum_exists(fig.number):
-                    break
-
-                # reset background
-                fig.canvas.restore_region(bg)
-
-                # set x and y data
-                line.set_ydata(y)
-                # ~ line.set_xdata(t-t[-1])
-                ax.draw_artist(line)
-
-                # update screen
-                fig.canvas.blit(fig.bbox)
-                fig.canvas.flush_events()
+                # plotext drawing
+                else:
+                    pltt.plot(t, y)
+                    pltt.show()
+                    pltt.clear_data()
 
                 # print n events in buffer
                 print(f'N events remaining in buffer: {self.ser.in_waiting}',
