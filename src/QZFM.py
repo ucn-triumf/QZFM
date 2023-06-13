@@ -498,7 +498,7 @@ class QZFM(object):
         except KeyboardInterrupt:
             print()
 
-    def monitor_data(self, axis='z', window_s=10, figsize=(10, 6), ascii=False):
+    def monitor_data(self, axis='z', window_s=10, figsize=None, ascii=False):
         """Continuously stream data to window
 
             See https://matplotlib.org/stable/tutorials/advanced/blitting.html
@@ -506,9 +506,16 @@ class QZFM(object):
         Args:
             axis (str): x|y|z
             window_s (int): show the last window_s seconds of data on the stream
-            figsize (tuple):  size of display
+            figsize (tuple):  size of display (x, y)
             ascii (bool): if true, display figure in terminal window
         """
+
+        # get default figsize
+        if figsize is None:
+            if ascii:
+                figsize=(200, 50)
+            else:
+                figsize=(10, 6)
 
         # get npts to show
         npts = self.data_read_rate * window_s
@@ -522,7 +529,7 @@ class QZFM(object):
             fig, ax = plt.subplots(figsize=figsize)
         else:
             pltt.clf()
-            pltt.plotsize(80, 30)
+            pltt.plotsize(*figsize)
             pltt.grid(True, True)
             pltt.clc()
             pltt.ylabel(f'$B_{self.read_axis}$ (pT)')
@@ -569,7 +576,7 @@ class QZFM(object):
             while True:
 
                 # get data
-                tnew, data = self.read_data(0.1, axis=axis, clear_buffer=False)
+                tnew, data = self.read_data(0.1, axis=axis, clear_buffer=ascii)
                 y = np.append(y, data)[-npts:]
                 t = np.append(t, tnew)[-npts:]
 
@@ -603,7 +610,6 @@ class QZFM(object):
 
                     # set x and y data
                     line.set_ydata(y)
-                    # ~ line.set_xdata(t-t[-1])
                     ax.draw_artist(line)
 
                     # update screen
@@ -616,7 +622,7 @@ class QZFM(object):
 
                 # plotext drawing
                 else:
-                    pltt.plot(t, y)
+                    pltt.plot(x, y)
                     pltt.show()
                     pltt.clear_data()
 
@@ -766,7 +772,7 @@ class QZFM(object):
         # convert to numeric data
         try:
             data = np.array(message).astype(int)
-        except ValueError:
+        except (ValueError, OverflowError):
             return (np.nan, np.nan)
             
         data = (data - 8388608) * 0.01
