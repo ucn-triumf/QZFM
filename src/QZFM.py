@@ -301,8 +301,7 @@ class QZFM(object):
             pltt.clc()
             pltt.plot(self.time-self.time[0], self.field)
             pltt.ylabel(f'$B_{self.read_axis}$ (pT)')
-            pltt.xlabel(f'Time Elapsed Since {datetime.fromtimestamp(self.time[0])} (s)',
-                        fontsize='small')
+            pltt.xlabel(f'Time Elapsed Since {datetime.fromtimestamp(self.time[0])} (s)')
             pltt.show()
 
     def field_reset(self):
@@ -562,6 +561,8 @@ class QZFM(object):
             pltt.plot(x, y)
             pltt.show()
             pltt.clear_data()
+            nlines = len(pltt.build().split('\n'))
+            print('\033[F'*nlines)
 
         try:
             # draw forever
@@ -609,15 +610,21 @@ class QZFM(object):
                     fig.canvas.blit(fig.bbox)
                     fig.canvas.flush_events()
 
+                    # print n events in buffer
+                    print(f'N events remaining in buffer: {self.ser.in_waiting}',
+                          flush=True, end='\r')
+
                 # plotext drawing
                 else:
                     pltt.plot(t, y)
                     pltt.show()
                     pltt.clear_data()
 
-                # print n events in buffer
-                print(f'N events remaining in buffer: {self.ser.in_waiting}',
-                      flush=True, end='\r')
+                    # print n events in buffer
+                    print(f'N events remaining in buffer: {self.ser.in_waiting}',
+                          flush=True)
+
+                    print('\033[F'*(nlines+1))
 
         except KeyboardInterrupt:
             # save data
@@ -757,7 +764,11 @@ class QZFM(object):
         good_data = (np.array([len(m) for m in message]) == self.serial_settings['bytesize']-1)
 
         # convert to numeric data
-        data = np.array(message).astype(int)
+        try:
+            data = np.array(message).astype(int)
+        except ValueError:
+            return (np.nan, np.nan)
+            
         data = (data - 8388608) * 0.01
 
         # check number of points
