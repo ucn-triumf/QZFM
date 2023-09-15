@@ -774,7 +774,7 @@ class QZFM(object):
             data = np.array(message).astype(int)
         except (ValueError, OverflowError):
             return (np.nan, np.nan)
-            
+
         data = (data - 8388608) * 0.01
 
         # check number of points
