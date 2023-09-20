@@ -163,6 +163,12 @@ for port in list_ports.comports():
     print(port)
 ```
 
+In bash you could also do
+
+```bash
+lsusb
+```
+
 On linux you should see something like `ttyUSB0` listed next to a device which has the QuSpin ID (i.e. something like `Z3T0`). Update your connection string as needed.
 
 In windows you're likely to see something like `COM3` or `COM5`. Use the relevant `COM` device as the connection string.
