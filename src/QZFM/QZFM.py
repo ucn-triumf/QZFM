@@ -271,7 +271,6 @@ class QZFM(object):
     def disconnect(self):
         """Disconnect from QuSpin"""
         self._set_data_stream(False)
-        self.reboot()
         self.ser.close()
 
     def draw_data(self, ascii=False):
