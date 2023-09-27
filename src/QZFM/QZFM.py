@@ -922,7 +922,8 @@ class QZFM(object):
         """Set analog gain (analog output only)
 
         Args:
-            mode (str): 0.33x|1x|3x
+            mode (str): 0.1x|0.33x|1x|3x
+                    0.1x (0.27 V/nT)
                     0.33x (0.9 V/nT)
                     1x (2.7 V/nT)
                     3x (8.1 V/nT)
@@ -940,6 +941,15 @@ class QZFM(object):
         elif mode == '3x':
             self.ser.write(b'b')
             self.gain = 8.1     # V/nT
+
+        elif mode == '0.1x':
+            self.ser.write(30)
+            self.gain = 0.27     # V/nT
+            self._get_next_message(timeout=100)
+            self.print_messages(1)
+
+        else:
+            raise RuntimeError(f'Bad gain setting ("{gain}"), must be 0.1x|0.33x|1x|3x')
 
     def to_csv(self, filename=None, *notes):
         """Write data to csv, if no filename, use default
