@@ -29,7 +29,8 @@ dependencies = [
     "datetime",
     "tqdm",
     "pandas",
-    "plotext"
+    "plotext",
+    "pyyaml"
 ]
 
 [project.urls]

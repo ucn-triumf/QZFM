@@ -4,5 +4,6 @@
 
 A full list of `Qzfm` project modules.
 
-    - [Qzfm](src/QZFM.md#qzfm)
-- [Src](src/index.md#src)
+        - [Labjack](src/QZFM/LabJack.md#labjack)
+        - [Qzfm](src/QZFM/QZFM.md#qzfm)
+    - [Qzfm](src/QZFM/index.md#qzfm)

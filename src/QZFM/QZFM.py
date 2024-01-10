@@ -16,9 +16,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import serial
 from tqdm import tqdm
+import yaml
 
 from serial.tools import list_ports
-from time import time
+from time import time, sleep
 from datetime import datetime
 import plotext as pltt
 
@@ -63,6 +64,7 @@ class QZFM(object):
                         }
 
     data_read_rate = 200 # Hz
+    zero_wait_duration = 5 # seconds, time waiting for zeroing to succeed
 
     def __init__(self, device_name=None, nbytes_status=1000):
         """Args:
@@ -100,17 +102,19 @@ class QZFM(object):
         if device_name is not None:
             self.connect(device_name)
 
-    def _get_next_message(self, timeout=1):
+    def _get_next_message(self, timeout=1, clear_buffer=True):
         """Block until for next message, as denoted by "#" first character
 
              Save message to message list
 
         Args:
             timeout (int): duration in seconds to wait until next message
+            clear_buffer (bool): if true, clear input buffer
         """
 
         # clear buffer to ensure new input
-        self.ser.reset_input_buffer()
+        if clear_buffer:
+            self.ser.reset_input_buffer()
 
         # initialize
         mess = []
@@ -209,22 +213,78 @@ class QZFM(object):
         self.read_axis = axis
         self._get_next_message()
 
-    def auto_start(self, block=True, show=True):
+    def auto_start(self, block=True, show=True, zero_calibrate=True):
         """Initiate the automated sensor startup routines
 
         Args:
             block (bool): if True, wait until laser is locked and temperature stabilized before unblocking
-            show (boo): print status continuously to screen until finished
+            show (bool): print status continuously to screen until finished
+            zero_calibrate (bool): if true, also field zero and calibrate the sensor. Forces block = True
+
+        Returns:
+            None
         """
+
+        # start autostart
         self.ser.write(b'>')
+
+        # print progress and messages
         self.update_status()
         self.print_status(overwrite_last=False)
 
-        if block:
+        if block or zero_calibrate:
             while not self.led["laser lock (LED3)"] or not self.led["cell temp lock (LED2)"]:
-                self.update_status()
+                self.update_status(clear_buffer=False)
                 if show:
                     self.print_status(overwrite_last=True)
+
+        # field zero and calibrate
+        if zero_calibrate:
+
+            # start field zero
+            print('\nField zeroing...')
+            self.field_zero(show=False)
+
+            # wait 5 seconds
+            self.update_status()
+            self.print_status(print_last_message=False)
+            for i in range(self.zero_wait_duration):
+                sleep(1)
+                self.update_status()
+                self.print_status(print_last_message=False, overwrite_last=True)
+
+            # check stability over wait duration
+            temp_lock_ok = False
+            temp_err_ok = False
+
+            t0 = time()
+            while temp_lock_ok and temp_err_ok and (time.time() - t0 > self.zero_wait_duration):
+
+                # check temperature lock
+                temp_lock_ok = self.led['cell temp lock (LED2)']
+
+                # check temperature error
+                temp_err_ok = self.sensor_par['cell temp error'] <= 0.001
+
+                # reset timer
+                if not temp_lock_ok or not temp_err_ok:
+                    t0 = time()
+
+                self.update_status()
+                self.print_status(overwrite_last=True, print_last_message=False)
+
+            # stop and print zeroing values
+            self.field_zero(False)
+            self.update_status()
+            self.print_status(overwrite_last=True, print_last_message=False)
+            print('Field zeroing finished.')
+
+            # start calibrate
+            print('\nCalibrating...')
+            self.calibrate()
+
+            # save data
+            self.save_state()
 
     def calibrate(self, show=True):
         """Calibrate the response (field to voltage) of the magnetometer with an internal signal reference
@@ -679,12 +739,13 @@ class QZFM(object):
                  ]
         print('\n'.join(lines), flush=True)
 
-    def print_status(self, update=False, overwrite_last=False):
+    def print_status(self, update=False, overwrite_last=False, print_last_message=True):
         """Print status of QuSpin in a nicely formatted message
 
         Args:
             update (bool): if True, update before printing. Otherwise, print prior saved values.
             overwrite_last (bool): if True, overwrite the last message. Used in monitor_status
+            print_last_message (bool): if True, print last message from QZFM
         """
 
         # look for print before update
@@ -706,6 +767,12 @@ class QZFM(object):
                  f'By field:        {self.sensor_par["By field (pT)"]:.4f} pT',
                  f'B0 field:        {self.sensor_par["B0 field (pT)"]:.4f} pT',
                  ]
+
+        if print_last_message:
+            try:
+                lines += ['', f'{self.messages[-1][0]: <{30}}']
+            except IndexError:
+                pass
 
         # add white space incase overwrite has fewer characters
         lines = [line+' '*10 for line in lines]
@@ -896,6 +963,53 @@ class QZFM(object):
         self.update_status()
         self._reset_attributes()
 
+    def save_state(self, filename=None):
+        """Write state of QZFM to file as a YAML file
+
+        Args:
+            filename (str): path to file to write, if none, set default filename
+
+        Returns:
+            None
+        """
+
+        # gather state info into one dict
+        self.update_status()
+        state_info = {**self.sensor_par,
+                      'gain (V/nT)': self.gain,
+                      **self.led,
+                      'last_updated': self.status_last_updated,
+                      }
+
+        # get calibration numbers
+        if self.is_calibrated:
+            for m in self.messages:
+                if 'Calib' in m[0]:
+                    calib_str = m[0]
+                    break
+
+            calib_str = calib_str.split(',')
+
+            state_info['calibration x'] = float(calib_str[0].split(':')[-1])
+            state_info['calibration y'] = float(calib_str[1].split(':')[-1])
+            state_info['calibration z'] = float(calib_str[2].split(':')[-1])
+
+            for c in calib_str[3:]:
+
+                c = c.strip()
+                axis = c[1:3]
+                val = float(c.split(')')[-1])
+                state_info[f'calibration {axis}'] = val
+
+        # set default filename
+        if filename is None:
+            dt = datetime.fromtimestamp(self.status_last_updated)
+            filename = f'qzfm_state_{dt.strftime("%y%m%d_%H%M%S")}.yaml'
+
+        # write to file
+        with open(filename, 'w') as fid:
+            fid.write(yaml.dump(state_info))
+
     def set_axis_mode(self, mode='z'):
         """Change field-sensitive axis
 
@@ -945,11 +1059,13 @@ class QZFM(object):
         elif mode == '0.1x':
             self.ser.write(30)
             self.gain = 0.27     # V/nT
-            self._get_next_message(timeout=100)
-            self.print_messages(1)
 
         else:
             raise RuntimeError(f'Bad gain setting ("{gain}"), must be 0.1x|0.33x|1x|3x')
+
+        # print gain set
+        self._get_next_message(timeout=10)
+        self.print_messages(1)
 
     def to_csv(self, filename=None, *notes):
         """Write data to csv, if no filename, use default
