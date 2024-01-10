@@ -28,14 +28,14 @@ This has been tested on the QuSpin Triaxial sensor.
 Install is accomplished with [`pip`](https://pypi.org/project/QZFM/):
 
 ```
-pip install --user QZFM
+pip install QZFM
 ```
 
 If you wish to install from source, clone this repository then do
 
 ```
 cd path/QZFM
-pip install --user -e .
+pip install -e .
 ```
 
 ---
@@ -56,23 +56,9 @@ qu = QZFM('Z3T0')
 
 # start
 # this will show the laser and temperature lock status
+# the command will also zero and calibrate the device
 # further execution is blocked until complete
 qu.auto_start()
-
-# run field zeroing
-# internal coils modulated to put cell into working conditions
-# displays applied offsets (add these back to get absolute field)
-# send interrupt (Ctrl-C) to stop display
-qu.field_zero()
-
-# turn off field zeroing
-# internal coils are continued to be modulated until the following is run
-# wait until the fields have settled and the temperature is locked (may become unlocked when
-# zeroing is started)
-qu.field_zero(False)
-
-# calibrate the sensor
-qu.calibrate()
 
 # we are now ready to start taking data
 # all front panel lights on the QuSpin electronics box should be green
@@ -80,6 +66,8 @@ qu.calibrate()
 # display live data from digital output
 qu.monitor_data('z')
 ```
+
+Note that if you disconnect from the QZFM electronics, the state of the sensor is maintained but the python script won't know the value of the zeroing fields or calibration numbers.
 
 ---
 ## Calibration
