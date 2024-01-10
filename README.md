@@ -152,6 +152,21 @@ $ sudo usermod -a -G dialout yourusername
 # then logout to have the changes take effect
 ```
 
+If the above does not work, check that the dialout group exists with command `group`:
+```
+$ groups
+dialout adm cdrom sudo dip plugdev lpadmin lxd sambashare dfujimoto
+```
+
+if `dialout` is not a group, make it with
+
+```
+newgrp dialout
+```
+
+then try again (no logout needed this time).
+
+
 ### 2. Cannot find device
 
 If one cannot find the device you can look at the list of available ports and devices using the following python script:
