@@ -6,9 +6,9 @@
 
 - [Labjack](#labjack)
   - [QZFMlj](#qzfmlj)
-    - [QZFMlj().read_data](#qzfmlj()read_data)
-    - [QZFMlj().read_single](#qzfmlj()read_single)
-    - [QZFMlj().setup](#qzfmlj()setup)
+    - [QZFMlj.read\_data](#qzfmljread_data)
+    - [QZFMlj.read\_single](#qzfmljread_single)
+    - [QZFMlj.setup](#qzfmljsetup)
 
 ## QZFMlj
 
@@ -35,7 +35,7 @@ class QZFMlj(QZFM):
     ): ...
 ```
 
-### QZFMlj().read_data
+### QZFMlj.read_data
 
 [Show source in LabJack.py:100](../../../src/QZFM/LabJack.py#L100)
 
@@ -56,7 +56,7 @@ pd.DataFrame denoting times and fields
 def read_data(self, seconds=1, rate=-1): ...
 ```
 
-### QZFMlj().read_single
+### QZFMlj.read_single
 
 [Show source in LabJack.py:76](../../../src/QZFM/LabJack.py#L76)
 
@@ -72,7 +72,7 @@ Read single set of values from device. Use read_stream get a longer sequence
 def read_single(self): ...
 ```
 
-### QZFMlj().setup
+### QZFMlj.setup
 
 [Show source in LabJack.py:57](../../../src/QZFM/LabJack.py#L57)
 

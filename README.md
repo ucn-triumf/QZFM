@@ -41,7 +41,7 @@ pip install --user -e .
 ---
 ## [API documentation](./docs/src/QZFM.md)
 
-See [here](./docs/src/QZFM.md) for documentation.
+See [here](./docs/src/QZFM/QZFM.md) for documentation.
 
 Documentation generated with [`handsdown`](https://github.com/vemel/handsdown)
 

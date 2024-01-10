@@ -5,39 +5,39 @@
 > Auto-generated documentation for [src.QZFM.QZFM](../../../src/QZFM/QZFM.py) module.
 
 - [Qzfm](#qzfm)
-  - [QZFM](#qzfm)
-    - [QZFM()._get_next_message](#qzfm()_get_next_message)
-    - [QZFM()._read_serial](#qzfm()_read_serial)
-    - [QZFM()._reset_attributes](#qzfm()_reset_attributes)
-    - [QZFM()._set_data_stream](#qzfm()_set_data_stream)
-    - [QZFM()._set_read_axis](#qzfm()_set_read_axis)
-    - [QZFM().auto_start](#qzfm()auto_start)
-    - [QZFM().calibrate](#qzfm()calibrate)
-    - [QZFM().cell_Tlock](#qzfm()cell_tlock)
-    - [QZFM().connect](#qzfm()connect)
-    - [QZFM().disconnect](#qzfm()disconnect)
-    - [QZFM().draw_data](#qzfm()draw_data)
-    - [QZFM().field_reset](#qzfm()field_reset)
-    - [QZFM().field_zero](#qzfm()field_zero)
-    - [QZFM().field_zeroed](#qzfm()field_zeroed)
-    - [QZFM().is_master](#qzfm()is_master)
-    - [QZFM().laser_locked](#qzfm()laser_locked)
-    - [QZFM().laser_on](#qzfm()laser_on)
-    - [QZFM().monitor_cell_T_error](#qzfm()monitor_cell_t_error)
-    - [QZFM().monitor_data](#qzfm()monitor_data)
-    - [QZFM().monitor_status](#qzfm()monitor_status)
-    - [QZFM().print_messages](#qzfm()print_messages)
-    - [QZFM().print_state](#qzfm()print_state)
-    - [QZFM().print_status](#qzfm()print_status)
-    - [QZFM().read_data](#qzfm()read_data)
-    - [QZFM().read_offsets](#qzfm()read_offsets)
-    - [QZFM().reboot](#qzfm()reboot)
-    - [QZFM().save_state](#qzfm()save_state)
-    - [QZFM().set_axis_mode](#qzfm()set_axis_mode)
-    - [QZFM().set_gain](#qzfm()set_gain)
-    - [QZFM().to_csv](#qzfm()to_csv)
-    - [QZFM().to_csv_fz](#qzfm()to_csv_fz)
-    - [QZFM().update_status](#qzfm()update_status)
+  - [QZFM](#qzfm-1)
+    - [QZFM.\_get\_next\_message](#qzfm_get_next_message)
+    - [QZFM.\_read\_serial](#qzfm_read_serial)
+    - [QZFM.\_reset\_attributes](#qzfm_reset_attributes)
+    - [QZFM.\_set\_data\_stream](#qzfm_set_data_stream)
+    - [QZFM.\_set\_read\_axis](#qzfm_set_read_axis)
+    - [QZFM.auto\_start](#qzfmauto_start)
+    - [QZFM.calibrate](#qzfmcalibrate)
+    - [QZFM.cell\_Tlock](#qzfmcell_tlock)
+    - [QZFM.connect](#qzfmconnect)
+    - [QZFM.disconnect](#qzfmdisconnect)
+    - [QZFM.draw\_data](#qzfmdraw_data)
+    - [QZFM.field\_reset](#qzfmfield_reset)
+    - [QZFM.field\_zero](#qzfmfield_zero)
+    - [QZFM.field\_zeroed](#qzfmfield_zeroed)
+    - [QZFM.is\_master](#qzfmis_master)
+    - [QZFM.laser\_locked](#qzfmlaser_locked)
+    - [QZFM.laser\_on](#qzfmlaser_on)
+    - [QZFM.monitor\_cell\_T\_error](#qzfmmonitor_cell_t_error)
+    - [QZFM.monitor\_data](#qzfmmonitor_data)
+    - [QZFM.monitor\_status](#qzfmmonitor_status)
+    - [QZFM.print\_messages](#qzfmprint_messages)
+    - [QZFM.print\_state](#qzfmprint_state)
+    - [QZFM.print\_status](#qzfmprint_status)
+    - [QZFM.read\_data](#qzfmread_data)
+    - [QZFM.read\_offsets](#qzfmread_offsets)
+    - [QZFM.reboot](#qzfmreboot)
+    - [QZFM.save\_state](#qzfmsave_state)
+    - [QZFM.set\_axis\_mode](#qzfmset_axis_mode)
+    - [QZFM.set\_gain](#qzfmset_gain)
+    - [QZFM.to\_csv](#qzfmto_csv)
+    - [QZFM.to\_csv\_fz](#qzfmto_csv_fz)
+    - [QZFM.update\_status](#qzfmupdate_status)
 
 ## QZFM
 
@@ -72,7 +72,7 @@ class QZFM(object):
     def __init__(self, device_name=None, nbytes_status=1000): ...
 ```
 
-### QZFM()._get_next_message
+### QZFM._get_next_message
 
 [Show source in QZFM.py:105](../../../src/QZFM/QZFM.py#L105)
 
@@ -91,7 +91,7 @@ Save message to message list
 def _get_next_message(self, timeout=1, clear_buffer=True): ...
 ```
 
-### QZFM()._read_serial
+### QZFM._read_serial
 
 [Show source in QZFM.py:137](../../../src/QZFM/QZFM.py#L137)
 
@@ -112,7 +112,7 @@ Read a serial messsage and convert to utf-8, split by newlines
 def _read_serial(self, nbytes, clear_buffer=True): ...
 ```
 
-### QZFM()._reset_attributes
+### QZFM._reset_attributes
 
 [Show source in QZFM.py:162](../../../src/QZFM/QZFM.py#L162)
 
@@ -124,7 +124,7 @@ Set attributes to default values
 def _reset_attributes(self): ...
 ```
 
-### QZFM()._set_data_stream
+### QZFM._set_data_stream
 
 [Show source in QZFM.py:177](../../../src/QZFM/QZFM.py#L177)
 
@@ -142,7 +142,7 @@ Equivalent to the Print ON and Print OFF commands
 def _set_data_stream(self, on=True): ...
 ```
 
-### QZFM()._set_read_axis
+### QZFM._set_read_axis
 
 [Show source in QZFM.py:193](../../../src/QZFM/QZFM.py#L193)
 
@@ -158,7 +158,7 @@ Change the axis for measurement
 def _set_read_axis(self, axis): ...
 ```
 
-### QZFM().auto_start
+### QZFM.auto_start
 
 [Show source in QZFM.py:216](../../../src/QZFM/QZFM.py#L216)
 
@@ -180,7 +180,7 @@ None
 def auto_start(self, block=True, show=True, zero_calibrate=True): ...
 ```
 
-### QZFM().calibrate
+### QZFM.calibrate
 
 [Show source in QZFM.py:289](../../../src/QZFM/QZFM.py#L289)
 
@@ -196,7 +196,7 @@ Calibrate the response (field to voltage) of the magnetometer with an internal s
 def calibrate(self, show=True): ...
 ```
 
-### QZFM().cell_Tlock
+### QZFM.cell_Tlock
 
 [Show source in QZFM.py:1222](../../../src/QZFM/QZFM.py#L1222)
 
@@ -207,7 +207,7 @@ def calibrate(self, show=True): ...
 def cell_Tlock(self): ...
 ```
 
-### QZFM().connect
+### QZFM.connect
 
 [Show source in QZFM.py:314](../../../src/QZFM/QZFM.py#L314)
 
@@ -223,7 +223,7 @@ Connect to the QuSpin device
 def connect(self, device_name): ...
 ```
 
-### QZFM().disconnect
+### QZFM.disconnect
 
 [Show source in QZFM.py:331](../../../src/QZFM/QZFM.py#L331)
 
@@ -235,7 +235,7 @@ Disconnect from QuSpin
 def disconnect(self): ...
 ```
 
-### QZFM().draw_data
+### QZFM.draw_data
 
 [Show source in QZFM.py:336](../../../src/QZFM/QZFM.py#L336)
 
@@ -251,7 +251,7 @@ Draw data to window
 def draw_data(self, ascii=False): ...
 ```
 
-### QZFM().field_reset
+### QZFM.field_reset
 
 [Show source in QZFM.py:366](../../../src/QZFM/QZFM.py#L366)
 
@@ -263,7 +263,7 @@ Sets the internal coil field values to zero
 def field_reset(self): ...
 ```
 
-### QZFM().field_zero
+### QZFM.field_zero
 
 [Show source in QZFM.py:378](../../../src/QZFM/QZFM.py#L378)
 
@@ -283,7 +283,7 @@ Run field zeroing procedure
 def field_zero(self, on=True, axes_xyz=True, show=True): ...
 ```
 
-### QZFM().field_zeroed
+### QZFM.field_zeroed
 
 [Show source in QZFM.py:1232](../../../src/QZFM/QZFM.py#L1232)
 
@@ -294,7 +294,7 @@ def field_zero(self, on=True, axes_xyz=True, show=True): ...
 def field_zeroed(self): ...
 ```
 
-### QZFM().is_master
+### QZFM.is_master
 
 [Show source in QZFM.py:1237](../../../src/QZFM/QZFM.py#L1237)
 
@@ -305,7 +305,7 @@ def field_zeroed(self): ...
 def is_master(self): ...
 ```
 
-### QZFM().laser_locked
+### QZFM.laser_locked
 
 [Show source in QZFM.py:1227](../../../src/QZFM/QZFM.py#L1227)
 
@@ -316,7 +316,7 @@ def is_master(self): ...
 def laser_locked(self): ...
 ```
 
-### QZFM().laser_on
+### QZFM.laser_on
 
 [Show source in QZFM.py:1217](../../../src/QZFM/QZFM.py#L1217)
 
@@ -327,7 +327,7 @@ def laser_locked(self): ...
 def laser_on(self): ...
 ```
 
-### QZFM().monitor_cell_T_error
+### QZFM.monitor_cell_T_error
 
 [Show source in QZFM.py:454](../../../src/QZFM/QZFM.py#L454)
 
@@ -346,7 +346,7 @@ See https://matplotlib.org/stable/tutorials/advanced/blitting.html
 def monitor_cell_T_error(self, window_s=20, figsize=(10, 6)): ...
 ```
 
-### QZFM().monitor_data
+### QZFM.monitor_data
 
 [Show source in QZFM.py:560](../../../src/QZFM/QZFM.py#L560)
 
@@ -367,7 +367,7 @@ See https://matplotlib.org/stable/tutorials/advanced/blitting.html
 def monitor_data(self, axis="z", window_s=10, figsize=None, ascii=False): ...
 ```
 
-### QZFM().monitor_status
+### QZFM.monitor_status
 
 [Show source in QZFM.py:700](../../../src/QZFM/QZFM.py#L700)
 
@@ -379,7 +379,7 @@ Continuously update and print status
 def monitor_status(self): ...
 ```
 
-### QZFM().print_messages
+### QZFM.print_messages
 
 [Show source in QZFM.py:715](../../../src/QZFM/QZFM.py#L715)
 
@@ -395,7 +395,7 @@ Print messages to screen
 def print_messages(self, last_n=None): ...
 ```
 
-### QZFM().print_state
+### QZFM.print_state
 
 [Show source in QZFM.py:730](../../../src/QZFM/QZFM.py#L730)
 
@@ -407,7 +407,7 @@ Print state of the python object
 def print_state(self): ...
 ```
 
-### QZFM().print_status
+### QZFM.print_status
 
 [Show source in QZFM.py:742](../../../src/QZFM/QZFM.py#L742)
 
@@ -425,7 +425,7 @@ Print status of QuSpin in a nicely formatted message
 def print_status(self, update=False, overwrite_last=False, print_last_message=True): ...
 ```
 
-### QZFM().read_data
+### QZFM.read_data
 
 [Show source in QZFM.py:786](../../../src/QZFM/QZFM.py#L786)
 
@@ -452,7 +452,7 @@ Assumed readback rate based on comments from QuSpin:
 def read_data(self, seconds, axis="z", clear_buffer=True): ...
 ```
 
-### QZFM().read_offsets
+### QZFM.read_offsets
 
 [Show source in QZFM.py:866](../../../src/QZFM/QZFM.py#L866)
 
@@ -476,7 +476,7 @@ reads at approx 7.5 Hz
 def read_offsets(self, npts, clear_buffer=True): ...
 ```
 
-### QZFM().reboot
+### QZFM.reboot
 
 [Show source in QZFM.py:960](../../../src/QZFM/QZFM.py#L960)
 
@@ -488,7 +488,7 @@ Reboot the microprocessor and reloads the firmware
 def reboot(self): ...
 ```
 
-### QZFM().save_state
+### QZFM.save_state
 
 [Show source in QZFM.py:966](../../../src/QZFM/QZFM.py#L966)
 
@@ -508,7 +508,7 @@ None
 def save_state(self, filename=None): ...
 ```
 
-### QZFM().set_axis_mode
+### QZFM.set_axis_mode
 
 [Show source in QZFM.py:1013](../../../src/QZFM/QZFM.py#L1013)
 
@@ -526,7 +526,7 @@ Note: triaxial sensors do not respond to this command
 def set_axis_mode(self, mode="z"): ...
 ```
 
-### QZFM().set_gain
+### QZFM.set_gain
 
 [Show source in QZFM.py:1035](../../../src/QZFM/QZFM.py#L1035)
 
@@ -546,7 +546,7 @@ Set analog gain (analog output only)
 def set_gain(self, mode="1x"): ...
 ```
 
-### QZFM().to_csv
+### QZFM.to_csv
 
 [Show source in QZFM.py:1070](../../../src/QZFM/QZFM.py#L1070)
 
@@ -563,7 +563,7 @@ Write data to csv, if no filename, use default
 def to_csv(self, filename=None, *notes): ...
 ```
 
-### QZFM().to_csv_fz
+### QZFM.to_csv_fz
 
 [Show source in QZFM.py:1115](../../../src/QZFM/QZFM.py#L1115)
 
@@ -580,7 +580,7 @@ Write field zero data to csv, if no filename, use default
 def to_csv_fz(self, filename=None, *notes): ...
 ```
 
-### QZFM().update_status
+### QZFM.update_status
 
 [Show source in QZFM.py:1149](../../../src/QZFM/QZFM.py#L1149)
 
