@@ -28,7 +28,6 @@ try:
 except (ModuleNotFoundError, ImportError):
     print('Failed to use backend "TkAgg"')
 
-
 class QZFM(object):
     """Low-level control of QuSpin magnetic sensor via QZFM serial commands via USB
 

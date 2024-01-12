@@ -11,12 +11,11 @@ Requires install of the following:
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import time
 from QZFM import QZFM
-from tqdm import tqdm
+from datetime import datetime
 
-# import labjack
+# import labjack-ljm
 try:
     from labjack import ljm
 except ModuleNotFoundError:
@@ -54,6 +53,25 @@ class QZFMlj(QZFM):
         super().__init__(device_name=QZFM_name,
                          nbytes_status=QZFM_nbytes)
 
+    def auto_start(self, xch, ych, zch, block=True, show=True, zero_calibrate=True):
+        """Initiate the automated sensor startup routines
+
+        Args:
+            x (int): AI# channel to read in Bx
+            y (int): AI# channel to read in By
+            z (int): AI# channel to read in Bz
+            block (bool): if True, wait until laser is locked and temperature stabilized before unblocking
+            show (bool): print status continuously to screen until finished
+            zero_calibrate (bool): if true, also field zero and calibrate the sensor. Forces block = True
+        """
+
+
+        # setup labjack
+        self.setup(xch, ych, zch)
+
+        # setup quspin
+        return super().auto_start(block, show, zero_calibrate)
+
     def setup(self, x=0, y=1, z=2):
         """Setup input channels to read from. Use AI#
 
@@ -74,7 +92,7 @@ class QZFMlj(QZFM):
         self.ch = ljm.namesToAddresses(3, (f'AIN{x}', f'AIN{y}', f'AIN{z}'))[0]
 
     def read_single(self):
-        """Read single set of values from device. Use read_stream get a longer sequence
+        """Read single set of values from device. Use read_data get a longer sequence
 
         Returns:
             np.ndarray: fields in pT
@@ -146,4 +164,51 @@ class QZFMlj(QZFM):
             if 'nT' in c:
                 df.loc[:, c] /= self.gain
 
-        return df.set_index('elapsed (s)')
+        df = df.set_index('elapsed (s)')
+        self.field = df
+
+        return df
+
+    def to_csv(self, filename=None, *notes):
+        """Write data to csv, if no filename, use default
+
+        Args:
+            filename (str): name of file to write
+            notes: things to add to file header
+        """
+
+        # set default file name
+        if filename is None:
+            t = datetime.now()
+            filename = f'qzfm_{datetime.strftime("%y%m%d%H%M%S")}.csv'
+
+        # make dataframe
+        df = self.field
+        self.update_status()
+
+        # write file header
+        header = [ '# QZFM (QuSpin Zero Field Monitor) analog data',
+                   '# ',
+                  f'# Field zeroed:    {self.led["field zeroed (LED4)"]}',
+                  f'# Laser lock:      {self.led["laser lock (LED3)"]}',
+                  f'# Cell T lock:     {self.led["cell temp lock (LED2)"]}',
+                  f'# Laser on:        {self.led["laser on (LED1)"]}',
+                  '#',
+                  f'# Cell T error:    {self.sensor_par["cell temp error"]}',
+                  f'# Bz field:        {self.sensor_par["Bz field (pT)"]:.4f} pT',
+                  f'# By field:        {self.sensor_par["By field (pT)"]:.4f} pT',
+                  f'# B0 field:        {self.sensor_par["B0 field (pT)"]:.4f} pT',
+                   '#',
+                  ]
+
+        if notes:
+            notes = [f'#\t{note}' for note in notes]
+            header.extend(['# Notes', *notes, '#'])
+
+        header.extend([f'# {datetime.now()}', '# \n'])
+
+        with open(filename, 'w') as fid:
+            fid.write('\n'.join(header))
+
+        # write data
+        df.to_csv(filename, mode='a', index=False)

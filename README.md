@@ -13,6 +13,7 @@ This has been tested on the QuSpin Triaxial sensor.
 - [QuSpin Zero Field Magnetometer DAQ](#quspin-zero-field-magnetometer-daq)
   - [README Contents](#readme-contents)
   - [Installation](#installation)
+    - [Additional setup for LabJack DAQ](#additional-setup-for-labjack-daq)
   - [API documentation](#api-documentation)
   - [Quick Start](#quick-start)
   - [Calibration](#calibration)
@@ -37,6 +38,13 @@ If you wish to install from source, clone this repository then do
 cd path/QZFM
 pip install -e .
 ```
+
+### Additional setup for LabJack DAQ
+
+Assumed T7 DAQ device.
+
+1. Install the [LJM software](https://labjack.com/pages/support?doc=%2Fsoftware-driver%2Finstaller-downloads%2Fljm-software-installers-t4-t7-digit%2F)
+2. Install the LJM python package: `pip install labjack-ljm`
 
 ---
 ## [API documentation](./docs/src/QZFM.md)
