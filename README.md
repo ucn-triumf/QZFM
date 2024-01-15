@@ -49,7 +49,8 @@ Assumed T7 DAQ device.
 ---
 ## [API documentation](./docs/src/QZFM.md)
 
-See [here](./docs/src/QZFM/QZFM.md) for documentation.
+* [QZFM](./docs/src/QZFM/QZFM.md) Module
+* [QZFMlj](./docs/src/QZFM/LabJack.md) Module (with labjack DAQ)
 
 Documentation generated with [`handsdown`](https://github.com/vemel/handsdown)
 
