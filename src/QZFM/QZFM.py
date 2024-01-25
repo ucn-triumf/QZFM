@@ -923,7 +923,7 @@ class QZFM(object):
             # parse the message
             for code in codes[:-1]:
                 if code[0] == '~':
-                    if code[3:].replace('.', '').isnumeric():
+                    if code[3:].replace('.', '').replace('-', '').isnumeric():
                         if code[1:3] == '07':
                             data['z'][nz] = float(code[3:])-32768
                             nz += 1
