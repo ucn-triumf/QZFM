@@ -446,6 +446,7 @@ class QZFM(object):
                              ]
                     print("\033[F"*5 + '\n'.join(lines))
             except KeyboardInterrupt:
+                self.field_zero(False)
                 print()
 
             self.update_status()
@@ -1192,7 +1193,7 @@ class QZFM(object):
 
             # readback parameters
             elif code[0] == '~':
-                if code[3:].replace('.', '').isnumeric():
+                if code[3:].replace('.', '').replace('-', '').isnumeric():
                     if   code[1:3] == '04':   sp['cell temp error'] = (float(code[3:])-8388608)/524288
                     elif code[1:3] == '05':   sp['cell temp voltage'] = int(code[3:])
                     elif code[1:3] == '07':   sp['Bz field (pT)'] = float(code[3:])-32768
