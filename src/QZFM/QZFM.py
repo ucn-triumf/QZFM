@@ -447,7 +447,7 @@ class QZFM(object):
                     print("\033[F"*5 + '\n'.join(lines))
             except KeyboardInterrupt:
                 self.field_zero(False)
-                print()
+                print('Field zeroing off')
 
             self.update_status()
 
