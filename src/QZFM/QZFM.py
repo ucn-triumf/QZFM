@@ -1067,6 +1067,17 @@ class QZFM(object):
         self._get_next_message(timeout=10)
         self.print_messages(1)
 
+    def set_master(self, master=True):
+        """Set master/slave status
+
+        Args:
+            master (bool): If true set as master, else set as slave
+        """
+        if master:
+            self.ser.write(113)
+        else:
+            self.ser.write(114)
+
     def to_csv(self, filename=None, *notes):
         """Write data to csv, if no filename, use default
 
