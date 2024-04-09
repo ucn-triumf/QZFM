@@ -1057,11 +1057,11 @@ class QZFM(object):
             self.gain = 8.1     # V/nT
 
         elif mode == '0.1x':
-            self.ser.write(30)
+            self.ser.write(b'x1e')
             self.gain = 0.27     # V/nT
 
         else:
-            raise RuntimeError(f'Bad gain setting ("{gain}"), must be 0.1x|0.33x|1x|3x')
+            raise RuntimeError(f'Bad gain setting ("{mode}"), must be 0.1x|0.33x|1x|3x')
 
         # print gain set
         self._get_next_message(timeout=10)
@@ -1074,9 +1074,9 @@ class QZFM(object):
             master (bool): If true set as master, else set as slave
         """
         if master:
-            self.ser.write(113)
+            self.ser.write(b'q')
         else:
-            self.ser.write(114)
+            self.ser.write(b'r')
 
     def to_csv(self, filename=None, *notes):
         """Write data to csv, if no filename, use default
