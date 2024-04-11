@@ -724,6 +724,21 @@ class QZFM(object):
             self.field = y
             print()
     
+    def monitor_status(self):
+        """Continuously update and print status"""
+
+        # do first update
+        self.update_status()
+        self.print_status()
+
+        # continuous
+        try:
+            while True:
+                self.update_status(clear_buffer=False)
+                self.print_status(overwrite_last=True)
+        except KeyboardInterrupt:
+            print()
+
     def monitor_zeroing(self, window_s=20, figsize=(10, 6)):
         """Continuously stream compensation coil fields to figure
 
@@ -858,22 +873,7 @@ class QZFM(object):
             self.field_zero(False)
             print('Field zeroing off')
             print()
-    
-    def monitor_status(self):
-        """Continuously update and print status"""
-
-        # do first update
-        self.update_status()
-        self.print_status()
-
-        # continuous
-        try:
-            while True:
-                self.update_status(clear_buffer=False)
-                self.print_status(overwrite_last=True)
-        except KeyboardInterrupt:
-            print()
-
+            
     def print_messages(self, last_n=None):
         """Print messages to screen
 
