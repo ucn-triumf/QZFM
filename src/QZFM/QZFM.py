@@ -62,9 +62,10 @@ class QZFM(object):
                         'dsrdtr':       False,
                         }
 
-    data_read_rate = 200 # Hz
+    data_read_rate = 200 # Hz reading rate from digital output
+    status_read_rate = 7.5 # Hz reading rate from status of sensor, including compensation coil values
     zero_wait_duration = 5 # seconds, time waiting for zeroing to succeed
-
+    
     def __init__(self, device_name=None, nbytes_status=1000):
         """Args:
             device_name (str): name of device to look for (connection)
@@ -212,14 +213,14 @@ class QZFM(object):
         self.read_axis = axis
         self._get_next_message()
 
-    def auto_start(self, block=True, show=True, zero_calibrate=True):
+    def auto_start(self, block=True, show=True, zero_calibrate=True, zero_cond = 100):
         """Initiate the automated sensor startup routines
 
         Args:
             block (bool): if True, wait until laser is locked and temperature stabilized before unblocking
             show (bool): print status continuously to screen until finished
             zero_calibrate (bool): if true, also field zero and calibrate the sensor. Forces block = True
-
+            zero_cond: field zeroing goal/stopping condition, in units of pT/s. The field zeroing will terminate after the set stability is reached for 5 consecutive seconds
         Returns:
             None
         """
@@ -239,51 +240,77 @@ class QZFM(object):
 
         # field zero and calibrate
         if zero_calibrate:
-
+            
+            # lists to hold compensation coil fields and time stamps
+            x_comp, y_comp, z_comp = [], [], []
+            t = []
+            
             # start field zero
             print('\nField zeroing...')
             self.field_zero(show=False)
 
-            # wait 5 seconds
+            #zero until field is stable (fluctuate less than 200 pT/s for 5 consecutive differences)
             self.update_status()
             self.print_status(print_last_message=False)
-            for i in range(self.zero_wait_duration):
-                sleep(1)
+            while len(x_comp) < 6 and len(y_comp) < 6 and len(z_comp) < 6:
                 self.update_status()
                 self.print_status(print_last_message=False, overwrite_last=True)
-
-            # check stability over wait duration
-            temp_lock_ok = False
-            temp_err_ok = False
-
-            t0 = time()
-            while temp_lock_ok and temp_err_ok and (time.time() - t0 > self.zero_wait_duration):
-
-                # check temperature lock
-                temp_lock_ok = self.led['cell temp lock (LED2)']
-
-                # check temperature error
-                temp_err_ok = self.sensor_par['cell temp error'] <= 0.001
-
-                # reset timer
-                if not temp_lock_ok or not temp_err_ok:
-                    t0 = time()
-
-                self.update_status()
-                self.print_status(overwrite_last=True, print_last_message=False)
+                t.append(self.status_last_updated)
+                x_comp.append(self.sensor_par['B0 field (pT)'])
+                y_comp.append(self.sensor_par['By field (pT)'])
+                z_comp.append(self.sensor_par['Bz field (pT)'])
+            
+            zeroed = False
+            while not zeroed:
+                # calculate field gradients (pT/s) 
+                # difference in times
+                t_diff = [j-i for i, j in zip(t[-5:][:-1], t[-5:][1:])]
+                
+                # differences in fields
+                x_diff = [j-i for i, j in zip(x_comp[-5:][:-1], x_comp[-5:][1:])]
+                y_diff = [j-i for i, j in zip(y_comp[-5:][:-1], y_comp[-5:][1:])]
+                z_diff = [j-i for i, j in zip(z_comp[-5:][:-1], z_comp[-5:][1:])]
+                
+                # calculate gradients
+                x_grad = [i/j for i, j in zip(x_diff, t_diff)]
+                y_grad = [i/j for i, j in zip(y_diff, t_diff)]
+                z_grad = [i/j for i, j in zip(z_diff, t_diff)]
+                
+                # check if gradients satisfy condition
+                if all(x < zero_cond for x in x_grad) and all(y < zero_cond for y in y_grad) and all(z < zero_cond for z in z_grad):
+                    zeroed = True
+                else:
+                    self.update_status()
+                    self.print_status(print_last_message=False, overwrite_last=True)
+                    t.append(self.status_last_updated)
+                    x_comp.append(self.sensor_par['B0 field (pT)'])
+                    y_comp.append(self.sensor_par['By field (pT)'])
+                    z_comp.append(self.sensor_par['Bz field (pT)'])
 
             # stop and print zeroing values
             self.field_zero(False)
             self.update_status()
             self.print_status(overwrite_last=True, print_last_message=False)
             print('Field zeroing finished.')
-
+            
+            
+            # field zeroing destroys temp_err, wait until temp err stabilizes again
+            print('Re-establishing cell temp lock')
+            temp_err_ok = False
+            temp_err_last = np.inf
+            while not temp_err_ok:
+                temp_err_ok = abs(self.sensor_par['cell temp error']) <= 0.001 or abs(temp_err_last-self.sensor_par['cell temp error']) <= 0.001
+                temp_err_last = self.sensor_par['cell temp error']
+                self.update_status()
+                print('Cell T error: {}\n Cell T error change: {}\n'.format(self.sensor_par['cell temp error'],
+                                                                            abs(temp_err_last-self.sensor_par['cell temp error'])))
+                
             # start calibrate
             print('\nCalibrating...')
             self.calibrate()
 
             # save data
-            self.save_state()
+            self.save_state()    
 
     def calibrate(self, show=True):
         """Calibrate the response (field to voltage) of the magnetometer with an internal signal reference
@@ -696,7 +723,142 @@ class QZFM(object):
             self.time = t
             self.field = y
             print()
+    
+    def monitor_zeroing(self, window_s=20, figsize=(10, 6)):
+        """Continuously stream compensation coil fields to figure
 
+            See https://matplotlib.org/stable/tutorials/advanced/blitting.html
+
+        Args:
+            window_s (int): show the last window_s seconds of data on the stream
+            figsize (tuple): size of display
+        """
+
+        # get initial point
+        self.update_status()
+
+        # make figure
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # draw initial window
+        x = np.array([self.status_last_updated])
+        bx = np.array([self.sensor_par['B0 field (pT)']]) 
+        by = np.array([self.sensor_par['By field (pT)']])
+        bz = np.array([self.sensor_par['Bz field (pT)']])
+        
+        (line_x,) = plt.plot(np.zeros(1), bx, animated=True, marker='o', fillstyle='none')
+        (line_y,) = plt.plot(np.zeros(1), by, animated=True, marker='o', fillstyle='none')
+        (line_z,) = plt.plot(np.zeros(1), bz, animated=True, marker='o', fillstyle='none')
+
+        # plot elements
+        plt.ylabel(f'Compensation Field (pT)')
+        plt.xlabel(f'Time (s)')
+        plt.tight_layout()
+
+        # render
+        plt.show(block=False)
+        plt.pause(0.05)
+
+        # get bounding box
+        bg = fig.canvas.copy_from_bbox(fig.bbox)
+
+        # draw
+        ax.draw_artist(line_x)
+        ax.draw_artist(line_y)
+        ax.draw_artist(line_z)
+
+        # show
+        fig.canvas.blit(fig.bbox)
+
+        # set x bounds
+        ax.set_xlim(-window_s*1.1, window_s*0.1)
+
+        # get bounds
+        ylim = ax.get_ylim()
+        xlim = ax.get_xlim()
+
+        # start zeroing
+        self.field_zero(show=False)
+        
+        try:
+            # draw forever
+            while True:
+
+                # get data
+                self.update_status(clear_buffer=True)
+                bx_new = self.sensor_par['B0 field (pT)']
+                by_new = self.sensor_par['By field (pT)']
+                bz_new = self.sensor_par['Bz field (pT)']
+                t = self.status_last_updated
+
+                x = np.append(x, t)
+                bx = np.append(bx, bx_new)
+                by = np.append(by, by_new)
+                bz = np.append(bz, bz_new)
+                dx = x-t
+
+                # check data limits
+                idx = np.abs(dx) < window_s
+                x = x[idx]
+                bx = bx[idx]
+                by = by[idx]
+                bz = bz[idx]
+                dx = dx[idx]
+
+                # check for figure
+                if not plt.fignum_exists(fig.number):
+                    break
+
+                # if out of bounds, redraw
+                if not (max(max(bx), max(by), max(bz)) < ylim[1] and min(min(bx), min(by), min(bz)) > ylim[0]) or not (max(dx) < xlim[1] and min(dx) > xlim[0]):
+                    plt.cla()
+                    (line_x,) = plt.plot(dx, bx, animated=True, marker='o', fillstyle='none')
+                    (line_y,) = plt.plot(dx, by, animated=True, marker='o', fillstyle='none')
+                    (line_z,) = plt.plot(dx, bz, animated=True, marker='o', fillstyle='none')
+
+                    # plot elements
+                    plt.ylabel(f'Compensation Field (pT)')
+                    plt.xlabel(f'Time (s)')
+                    plt.tight_layout()
+
+                    # redraw
+                    plt.pause(0.05)
+                    bg = fig.canvas.copy_from_bbox(fig.bbox)
+                    ax.draw_artist(line_x)
+                    ax.draw_artist(line_y)
+                    ax.draw_artist(line_z)
+                    fig.canvas.blit(fig.bbox)
+
+                else:
+                    # reset background
+                    fig.canvas.restore_region(bg)
+
+                    # set data
+                    line_x.set_xdata(dx)
+                    line_x.set_ydata(bx)
+                    ax.draw_artist(line_x)
+                    
+                    line_y.set_xdata(dx)
+                    line_y.set_ydata(by)
+                    ax.draw_artist(line_y)
+                    
+                    line_z.set_xdata(dx)
+                    line_z.set_ydata(bz)
+                    ax.draw_artist(line_z)
+
+                # update screen
+                fig.canvas.blit(fig.bbox)
+                fig.canvas.flush_events()
+
+                # print n events in buffer
+                # print(f'N events remaining in buffer: {self.ser.in_waiting}',
+                #       flush=True, end='\r')
+
+        except KeyboardInterrupt:
+            self.field_zero(False)
+            print('Field zeroing off')
+            print()
+    
     def monitor_status(self):
         """Continuously update and print status"""
 
